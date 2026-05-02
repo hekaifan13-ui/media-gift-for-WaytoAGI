@@ -536,18 +536,18 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
 
       {/* Main Content Area */}
       <div className="flex-1 flex px-10 pb-10 gap-8 min-h-0 relative z-10">
-        {/* Left: Main Visual Area (Hollow 16:9 frame) — transparent interior */}
-        <div className="aspect-[16/9] h-full border-[6px] border-[#6366f1] rounded-[32px] bg-transparent relative shrink-0 z-10">
+        {/* Left: Main Visual Area (Hollow 16:9 frame) — white interior, background shows outside */}
+        <div className="aspect-[16/9] h-full border-[3px] border-[#6366f1] rounded-[32px] relative shrink-0 z-10 overflow-hidden" style={{ background: isDark ? 'rgba(0,0,0,0.85)' : '#ffffff' }}>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
              <ImageIcon size={80} className={`mb-4 opacity-[0.08] ${isDark ? 'text-white' : 'text-indigo-900'}`} />
           </div>
           
           {/* Corner Accents */}
-          <div className="absolute top-6 left-6 w-12 h-12 border-t-4 border-l-4 border-indigo-500/50 rounded-tl-lg"></div>
-          <div className="absolute top-6 right-6 w-12 h-12 border-t-4 border-r-4 border-indigo-500/50 rounded-tr-lg"></div>
-          <div className="absolute bottom-6 left-6 w-12 h-12 border-b-4 border-l-4 border-indigo-500/50 rounded-bl-lg"></div>
-          <div className="absolute bottom-6 right-6 w-12 h-12 border-b-4 border-r-4 border-indigo-500/50 rounded-br-lg"></div>
+          <div className="absolute top-5 left-5 w-10 h-10 border-t-[3px] border-l-[3px] border-indigo-400/60 rounded-tl-lg"></div>
+          <div className="absolute top-5 right-5 w-10 h-10 border-t-[3px] border-r-[3px] border-indigo-400/60 rounded-tr-lg"></div>
+          <div className="absolute bottom-5 left-5 w-10 h-10 border-b-[3px] border-l-[3px] border-indigo-400/60 rounded-bl-lg"></div>
+          <div className="absolute bottom-5 right-5 w-10 h-10 border-b-[3px] border-r-[3px] border-indigo-400/60 rounded-br-lg"></div>
         </div>
 
         {/* Right: Sidebar */}
