@@ -437,7 +437,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
           ></div>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-             <ImageIcon size={80} className={`mb-4 ${isDark ? 'text-indigo-200/20' : 'text-indigo-300/20'}`} />
+             <ImageIcon size={80} className={`mb-4 opacity-[0.08] ${isDark ? 'text-white' : 'text-indigo-900'}`} />
           </div>
           
           {/* Corner Accents */}
