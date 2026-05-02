@@ -16,6 +16,8 @@ const GuestLibrary: React.FC<GuestLibraryProps> = ({ onBack, onSelectGuest }) =>
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
   const [newTitle, setNewTitle] = useState('');
+  const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
+  const [newAvatarPreview, setNewAvatarPreview] = useState<string | null>(null);
   const [draggingOver, setDraggingOver] = useState(false);
   const [draggingOverId, setDraggingOverId] = useState<string | null>(null);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
@@ -38,14 +40,28 @@ const GuestLibrary: React.FC<GuestLibraryProps> = ({ onBack, onSelectGuest }) =>
   const handleAdd = async () => {
     if (!newName.trim()) return;
     try {
-      const guest = await createGuest(newName.trim(), newTitle.trim());
-      setGuests(prev => [guest, ...prev]);
+      let avatarUrl: string | undefined;
+      if (newAvatarFile) {
+        avatarUrl = await uploadFile(newAvatarFile, 'avatars');
+      }
+      const guest = await createGuest(newName.trim(), newTitle.trim(), avatarUrl);
+      setGuests(prev => [{ ...guest, avatar_url: avatarUrl || null }, ...prev]);
       setNewName('');
       setNewTitle('');
+      setNewAvatarFile(null);
+      setNewAvatarPreview(null);
       setShowAdd(false);
     } catch (err) {
       console.error('Failed to add guest:', err);
     }
+  };
+
+  const handleNewAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setNewAvatarFile(file);
+    const url = URL.createObjectURL(file);
+    setNewAvatarPreview(url);
   };
 
   const handleUpdate = async (id: string) => {
@@ -159,7 +175,26 @@ const GuestLibrary: React.FC<GuestLibraryProps> = ({ onBack, onSelectGuest }) =>
         {/* Add form */}
         {showAdd && (
           <div className="bg-white rounded-xl p-5 mb-6 border border-gray-200 shadow-sm">
-            <div className="flex gap-4 items-end">
+            <div className="flex gap-4 items-start">
+              {/* Avatar upload */}
+              <div className="shrink-0">
+                <label className="block w-20 h-20 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 hover:border-indigo-400 cursor-pointer overflow-hidden transition-colors relative">
+                  {newAvatarPreview ? (
+                    <img src={newAvatarPreview} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                      <Upload size={18} />
+                      <span className="text-[9px] mt-0.5">Avatar</span>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleNewAvatarSelect}
+                  />
+                </label>
+              </div>
               <div className="flex-1 space-y-2">
                 <input
                   autoFocus
@@ -178,9 +213,9 @@ const GuestLibrary: React.FC<GuestLibraryProps> = ({ onBack, onSelectGuest }) =>
                   onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
                 />
               </div>
-              <div className="flex gap-2 shrink-0">
+              <div className="flex gap-2 shrink-0 pt-2">
                 <button onClick={handleAdd} className="px-5 py-2.5 bg-indigo-500 text-white rounded-lg font-bold text-sm hover:bg-indigo-600">Save</button>
-                <button onClick={() => setShowAdd(false)} className="px-4 py-2.5 text-gray-500 hover:text-gray-700 text-sm font-medium">Cancel</button>
+                <button onClick={() => { setShowAdd(false); setNewAvatarFile(null); setNewAvatarPreview(null); }} className="px-4 py-2.5 text-gray-500 hover:text-gray-700 text-sm font-medium">Cancel</button>
               </div>
             </div>
           </div>

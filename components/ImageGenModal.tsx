@@ -1,46 +1,38 @@
 import React, { useState } from 'react';
-import { generateCoverImage } from '../services/geminiService';
 import { Sparkles, Loader2, X, Image as ImageIcon, Check, Download } from 'lucide-react';
+import { useAIImage } from '../hooks/useAIImage';
 
 interface ImageGenModalProps {
-  onSelect: (base64Image: string) => void;
+  onSelect: (imageUrl: string) => void;
   onClose: () => void;
   initialPrompt?: string;
 }
 
 const ASPECT_RATIOS = [
-  { label: 'Square', value: '1:1', icon: 'square' },
-  { label: 'Portrait', value: '3:4', icon: 'portrait' },
-  { label: 'Landscape', value: '4:3', icon: 'landscape' },
-  { label: 'Wide', value: '16:9', icon: 'wide' },
-  { label: 'Tall', value: '9:16', icon: 'tall' },
+  { label: 'Square', value: '1:1' },
+  { label: 'Portrait', value: '3:4' },
+  { label: 'Landscape', value: '4:3' },
+  { label: 'Wide', value: '16:9' },
+  { label: 'Tall', value: '9:16' },
 ];
 
 const ImageGenModal: React.FC<ImageGenModalProps> = ({ onSelect, onClose, initialPrompt = '' }) => {
   const [prompt, setPrompt] = useState(initialPrompt);
-  const [aspectRatio, setAspectRatio] = useState('3:4');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [aspectRatio, setAspectRatio] = useState('16:9');
+  const { images, error, isLoading, isSubmitting, isPolling, submitAndPoll, clearImages } = useAIImage();
+
+  const generatedImage = images.length > 0 ? images[0].url : null;
 
   const handleGenerate = async () => {
-    if (!prompt) return;
-    setIsGenerating(true);
-    setError(null);
-    setGeneratedImage(null);
-
-    try {
-      const result = await generateCoverImage(prompt, aspectRatio);
-      if (result) {
-        setGeneratedImage(result);
-      } else {
-        setError("No image generated. Please try a different prompt.");
-      }
-    } catch (err) {
-      setError("Failed to generate image. Please try again.");
-    } finally {
-      setIsGenerating(false);
-    }
+    if (!prompt.trim()) return;
+    await submitAndPoll({
+      model: 'openai/gpt-image-2',
+      prompt: prompt.trim(),
+      type: 'txt_2_img',
+      ratio: aspectRatio,
+      resolution: '2k',
+      format: 'png',
+    });
   };
 
   const handleDownloadImage = () => {
@@ -48,6 +40,7 @@ const ImageGenModal: React.FC<ImageGenModalProps> = ({ onSelect, onClose, initia
     const link = document.createElement('a');
     link.href = generatedImage;
     link.download = `ai-generated-${Date.now()}.png`;
+    link.target = '_blank';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -77,6 +70,7 @@ const ImageGenModal: React.FC<ImageGenModalProps> = ({ onSelect, onClose, initia
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Describe the image you want (e.g., A watercolor painting of a cafe in Paris...)"
                 className="w-full h-32 p-3 rounded-xl border border-gray-200 bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none resize-none text-sm leading-relaxed text-gray-900 placeholder:text-gray-400"
+                disabled={isLoading}
               />
             </div>
 
@@ -87,6 +81,7 @@ const ImageGenModal: React.FC<ImageGenModalProps> = ({ onSelect, onClose, initia
                   <button
                     key={ratio.value}
                     onClick={() => setAspectRatio(ratio.value)}
+                    disabled={isLoading}
                     className={`flex flex-col items-center justify-center p-2 rounded-lg border text-xs font-medium transition-all ${
                       aspectRatio === ratio.value
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform scale-105'
@@ -99,28 +94,31 @@ const ImageGenModal: React.FC<ImageGenModalProps> = ({ onSelect, onClose, initia
                 ))}
               </div>
             </div>
+
+            <div className="text-[10px] text-gray-400 bg-gray-100 rounded-lg px-3 py-2 flex items-center gap-2">
+              <span className="font-bold text-indigo-500">GPT Image 2</span>
+              <span className="opacity-70">|</span>
+              <span>High quality, slower generation</span>
+            </div>
           </div>
 
           <button
             onClick={handleGenerate}
-            disabled={!prompt || isGenerating}
-            className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+            disabled={!prompt.trim() || isLoading}
+            className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="animate-spin" size={18} /> Generating...
-              </>
+            {isSubmitting ? (
+              <><Loader2 className="animate-spin" size={18} /> Submitting...</>
+            ) : isPolling ? (
+              <><Loader2 className="animate-spin" size={18} /> Generating...</>
             ) : (
-              <>
-                <Sparkles size={18} /> Generate Image
-              </>
+              <><Sparkles size={18} /> Generate Image</>
             )}
           </button>
         </div>
 
         {/* Right: Preview */}
         <div className="w-full md:w-1/2 bg-[#e5e5f7] relative flex items-center justify-center p-6 overflow-hidden">
-           {/* Geometric background pattern from main css */}
            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{
               backgroundImage: 'linear-gradient(#4f46e5 1px, transparent 1px), linear-gradient(90deg, #4f46e5 1px, transparent 1px)',
               backgroundSize: '20px 20px'
@@ -128,7 +126,7 @@ const ImageGenModal: React.FC<ImageGenModalProps> = ({ onSelect, onClose, initia
 
            <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 hidden md:block z-30 bg-white/50 rounded-full p-1 hover:bg-white transition-colors cursor-pointer">
               <X size={20} />
-            </button>
+           </button>
 
            {generatedImage ? (
              <div className="flex flex-col items-center w-full h-full relative z-20">
@@ -137,25 +135,26 @@ const ImageGenModal: React.FC<ImageGenModalProps> = ({ onSelect, onClose, initia
                     src={generatedImage} 
                     alt="AI Generated" 
                     className="max-w-full max-h-full rounded-lg shadow-2xl object-contain border-4 border-white"
+                    crossOrigin="anonymous"
                   />
                 </div>
                 <div className="mt-6 w-full flex gap-3">
                    <button 
                      onClick={() => onSelect(generatedImage)}
-                     className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-bold shadow-lg flex items-center justify-center gap-2 transition-transform hover:scale-105 cursor-pointer z-20 relative"
+                     className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-bold shadow-lg flex items-center justify-center gap-2 transition-transform hover:scale-105"
                    >
                      <Check size={18} /> Use This
                    </button>
                    <button 
                      onClick={handleDownloadImage}
-                     className="px-3 bg-white hover:bg-gray-100 text-gray-700 py-2 rounded-lg font-bold shadow-md border border-gray-200 cursor-pointer z-20 relative flex items-center justify-center transition-colors"
-                     title="Download Image"
+                     className="px-3 bg-white hover:bg-gray-100 text-gray-700 py-2 rounded-lg font-bold shadow-md border border-gray-200 flex items-center justify-center"
+                     title="Download"
                    >
                      <Download size={18} />
                    </button>
                    <button 
-                     onClick={() => setGeneratedImage(null)}
-                     className="px-4 bg-white hover:bg-gray-100 text-gray-700 py-2 rounded-lg font-bold shadow-md border border-gray-200 cursor-pointer z-20 relative"
+                     onClick={() => clearImages()}
+                     className="px-4 bg-white hover:bg-gray-100 text-gray-700 py-2 rounded-lg font-bold shadow-md border border-gray-200"
                    >
                      Discard
                    </button>
@@ -163,20 +162,20 @@ const ImageGenModal: React.FC<ImageGenModalProps> = ({ onSelect, onClose, initia
              </div>
            ) : (
              <div className="text-center text-gray-400 flex flex-col items-center relative z-20">
-                {error ? (
+                {error && (
                   <div className="bg-red-50 text-red-500 p-4 rounded-xl text-sm max-w-xs border border-red-100 mb-4">
                     {error}
                   </div>
-                ) : null}
+                )}
                 <div className="w-24 h-24 bg-white/50 rounded-full flex items-center justify-center mb-4 shadow-inner">
-                   {isGenerating ? (
+                   {isLoading ? (
                      <Sparkles className="text-indigo-400 animate-pulse" size={40} />
                    ) : (
                      <ImageIcon className="text-gray-300" size={40} />
                    )}
                 </div>
                 <p className="text-sm font-medium">
-                  {isGenerating ? "Dreaming up your image..." : "Your creation will appear here"}
+                  {isPolling ? "GPT Image 2 is generating..." : isSubmitting ? "Submitting request..." : "Your creation will appear here"}
                 </p>
              </div>
            )}
