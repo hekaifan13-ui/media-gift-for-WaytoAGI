@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Author } from '../types';
 import { fetchGuests, createGuest, updateGuest, deleteGuest, GuestItem } from '../services/api';
 import { X, Plus, Trash2, Edit2, UserPlus, User, Check, Upload } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from '../lib/motion';
 
 interface GuestLibraryProps {
   onClose: () => void;

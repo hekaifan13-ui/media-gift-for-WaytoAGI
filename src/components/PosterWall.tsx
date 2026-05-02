@@ -4,7 +4,7 @@ import { TemplateId } from '../types';
 import { fetchProjects, deleteProject, ProjectListItem } from '../services/api';
 import { TEMPLATES } from '../constants';
 import { Plus, Trash2, Edit2, LayoutGrid, Search, Film, Code, Image as ImageIcon } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from '../lib/motion';
 
 interface PosterWallProps {
   onNewProject: () => void;
