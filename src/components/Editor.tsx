@@ -14,8 +14,8 @@ import ImageGenModal from './ImageGenModal';
 import GuestLibrary from './GuestLibrary';
 import { createProject, updateProject } from '../services/api';
 import { motion, AnimatePresence } from '../lib/motion';
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import * as htmlToImage from 'html-to-image';
+import { TransformWrapper, TransformComponent } from "../lib/zoom-pan";
+import * as htmlToImage from '../lib/dom-to-image';
 
 interface EditorProps {
   data: PostcardData;
