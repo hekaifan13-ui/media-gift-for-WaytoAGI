@@ -1,25 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 body {
   margin: 0;
   padding: 0;
-  background-color: #e5e5f7;
-  background-image:
-    linear-gradient(#d5d5ed 2px, transparent 2px),
-    linear-gradient(90deg, #d5d5ed 2px, transparent 2px),
-    linear-gradient(#d5d5ed 1px, transparent 1px),
-    linear-gradient(90deg, #d5d5ed 1px, transparent 1px);
-  background-size: 50px 50px, 50px 50px, 10px 10px, 10px 10px;
-  background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
-  overflow-x: hidden;
 }
-
-.preserve-3d {
-  transform-style: preserve-3d;
-}
-
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
