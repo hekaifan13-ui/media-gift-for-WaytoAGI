@@ -472,6 +472,23 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                 />
               </div>
 
+              {/* Letter Spacing slider */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Letter Spacing</label>
+                  <span className="text-[10px] font-mono text-gray-500">{(data.liveTopicSpacing ?? 0).toFixed(2)}em</span>
+                </div>
+                <input
+                  type="range"
+                  min="-0.05"
+                  max="0.5"
+                  step="0.01"
+                  value={data.liveTopicSpacing ?? 0}
+                  onChange={(e) => updateData('liveTopicSpacing', parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-indigo-500"
+                />
+              </div>
+
               {/* Card 3 Background Picker */}
               <div className="space-y-2 pt-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Card Background</label>

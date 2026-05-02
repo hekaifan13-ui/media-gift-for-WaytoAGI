@@ -491,7 +491,10 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
       <div className="px-10 py-6 flex items-center justify-between z-20">
         <div className={`flex items-center gap-6 rounded-3xl px-8 py-4 shadow-sm transition-colors duration-500 ${isDark ? 'bg-indigo-900/50 border border-indigo-500/30' : 'bg-[#c7d2fe]'}`}>
           <span className="bg-[#4338ca] text-white text-xl font-black px-5 py-2 rounded-2xl whitespace-nowrap">直播主题</span>
-          <h1 className={`text-4xl font-black tracking-tight truncate max-w-[1000px] transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <h1 
+            className={`text-4xl font-black truncate max-w-[1000px] transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`}
+            style={{ letterSpacing: `${data.liveTopicSpacing ?? 0}em` }}
+          >
             {data.liveTopic || "直播主题内容"}
           </h1>
         </div>
@@ -533,14 +536,8 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
 
       {/* Main Content Area */}
       <div className="flex-1 flex px-10 pb-10 gap-8 min-h-0 relative z-10">
-        {/* Left: Main Visual Area (Hollow 16:9 frame) */}
+        {/* Left: Main Visual Area (Hollow 16:9 frame) — transparent interior */}
         <div className="aspect-[16/9] h-full border-[6px] border-[#6366f1] rounded-[32px] bg-transparent relative shrink-0 z-10">
-          {/* ── Restored original solid boxShadow hollow-frame trick ── */}
-          {/* The huge spread fills everything outside the border box with the preset's solid bg color */}
-          <div 
-            className="absolute inset-[-2px] -z-10 rounded-[28px] pointer-events-none"
-            style={{ boxShadow: `0 0 0 2000px ${bgPreset.shadowColor}` }}
-          ></div>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
              <ImageIcon size={80} className={`mb-4 opacity-[0.08] ${isDark ? 'text-white' : 'text-indigo-900'}`} />
