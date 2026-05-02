@@ -4,15 +4,18 @@ import { PostcardData, TemplateId, Author } from '../types';
 import { getTemplateComponent } from './CardTemplates';
 import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS } from './bgPresets';
 import { 
-  Image as ImageIcon, Download, ArrowLeft, Wand2, RefreshCw, 
+  Image as ImageIcon, Download, ArrowLeft, Wand2, RefreshCw, Save,
   Calendar, MapPin, User, AlignLeft, UploadCloud, QrCode, Type, Sparkles, Plus, Trash2, Edit2, Hexagon, Layout,
-  Maximize2, Minimize2, MousePointer2, Move, ZoomIn, ZoomOut, RotateCcw
+  Maximize2, Minimize2, MousePointer2, Move, ZoomIn, ZoomOut, RotateCcw, Check
 } from 'lucide-react';
 import AIGenerator from './AIGenerator';
 import ImageCropper from './ImageCropper';
 import ImageGenModal from './ImageGenModal';
+import LogoLibrary from './LogoLibrary';
+import GuestLibrary from './GuestLibrary';
 import { motion, AnimatePresence } from 'motion/react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { createProject, updateProject } from '../services/storageService';
 
 // Need to declare global htmlToImage from the script tag
 declare const htmlToImage: any;
@@ -21,6 +24,9 @@ interface EditorProps {
   data: PostcardData;
   updateData: (key: keyof PostcardData, value: any) => void;
   onBack: () => void;
+  projectId: string | null;
+  projectTitle: string;
+  onProjectSaved: (id: string, title: string) => void;
 }
 
 interface CroppingState {
@@ -30,7 +36,7 @@ interface CroppingState {
   aspectRatio: number;
 }
 
-const Editor: React.FC<EditorProps> = ({ data, updateData, onBack }) => {
+const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, projectTitle, onProjectSaved }) => {
   const [showAI, setShowAI] = useState(false);
   const [showImageGen, setShowImageGen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -39,6 +45,10 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack }) => {
   const [isCanvasMode, setIsCanvasMode] = useState(false);
   const [downloadFormat, setDownloadFormat] = useState<'png' | 'jpg'>('png');
   const [canvasZoom, setCanvasZoom] = useState(1);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleInput, setTitleInput] = useState(projectTitle);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -224,6 +234,41 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack }) => {
     }
   };
 
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      if (projectId) {
+        await updateProject(projectId, { title: titleInput, data });
+        onProjectSaved(projectId, titleInput);
+      } else {
+        const project = await createProject(titleInput, data.templateId, data);
+        onProjectSaved(project.id, titleInput);
+      }
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (err) {
+      console.error('Save failed:', err);
+      alert('Failed to save project.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSelectLogoFromLibrary = (url: string) => {
+    const newLogos = [...(data.logos || []), url];
+    updateData('logos', newLogos);
+  };
+
+  const handleSelectGuestFromLibrary = (guest: { name: string; title: string; image: string | null }) => {
+    const newAuthor: Author = {
+      id: Date.now().toString(),
+      name: guest.name,
+      title: guest.title,
+      image: guest.image,
+    };
+    updateData('authors', [...(data.authors || []), newAuthor]);
+  };
+
   const getPreviewScale = () => {
      if (isCanvasMode) return data.templateId === TemplateId.CODE ? 0.875 : 1;
      if (data.templateId === TemplateId.MODERN) return 0.48;
@@ -263,13 +308,38 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack }) => {
         >
           {/* Header */}
           <div className="h-16 flex items-center px-6 border-b border-gray-100 bg-white/80 backdrop-blur-sm shrink-0">
-             <button onClick={onBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors mr-3 group" title="Back to Collection">
+             <button onClick={onBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors mr-3 group" title="Back to Projects">
                <ArrowLeft size={20} className="text-gray-400 group-hover:text-gray-800 transition-colors" />
              </button>
-             <div className="flex-1">
-                <h2 className="text-lg font-serif font-bold text-gray-800 tracking-wide">Customize</h2>
+             <div className="flex-1 min-w-0">
+                {editingTitle ? (
+                  <input
+                    autoFocus
+                    value={titleInput}
+                    onChange={(e) => setTitleInput(e.target.value)}
+                    onBlur={() => setEditingTitle(false)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') setEditingTitle(false); }}
+                    className="text-sm font-bold text-gray-800 bg-gray-100 rounded-md px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-400 w-full"
+                  />
+                ) : (
+                  <h2 
+                    className="text-sm font-bold text-gray-800 truncate cursor-pointer hover:text-indigo-600 transition-colors" 
+                    onClick={() => setEditingTitle(true)}
+                    title="Click to rename"
+                  >
+                    {titleInput || 'Untitled'}
+                  </h2>
+                )}
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Design your memory</p>
              </div>
+             <button 
+               onClick={handleSave}
+               disabled={isSaving}
+               className={`p-2 rounded-lg transition-all mr-2 ${saveStatus === 'saved' ? 'bg-green-100 text-green-600' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} disabled:opacity-50`}
+               title="Save Project"
+             >
+               {saveStatus === 'saved' ? <Check size={18} /> : isSaving ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
+             </button>
              <button 
                onClick={toggleCanvasMode} 
                className={`p-2 rounded-lg transition-all ${isCanvasMode ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
@@ -386,6 +456,10 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack }) => {
                       </div>
                    ))
                 )}
+             </div>
+             {/* Logo Library */}
+             <div className="mt-4 pt-4 border-t border-gray-100">
+               <LogoLibrary onSelectLogo={handleSelectLogoFromLibrary} />
              </div>
           </section>
 
@@ -599,6 +673,11 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack }) => {
                          ))}
                       </div>
                    )}
+                </section>
+
+                {/* Guest Library */}
+                <section className="space-y-3 border-b border-gray-100 pb-6">
+                  <GuestLibrary onSelectGuest={handleSelectGuestFromLibrary} />
                 </section>
              </>
           )}

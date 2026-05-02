@@ -1,5 +1,6 @@
 
 export enum AppState {
+  PROJECTS = 'PROJECTS',
   INTRO = 'INTRO',
   SELECTION = 'SELECTION',
   EDITOR = 'EDITOR',

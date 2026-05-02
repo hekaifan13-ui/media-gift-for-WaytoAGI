@@ -1,0 +1,60 @@
+
+-- Projects table: stores all poster project data
+CREATE TABLE projects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL DEFAULT 'Untitled Project',
+  template_id TEXT NOT NULL,
+  data JSONB NOT NULL DEFAULT '{}',
+  thumbnail TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to projects" ON projects FOR ALL USING (true) WITH CHECK (true);
+
+-- Guests table: reusable guest information
+CREATE TABLE guests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL DEFAULT '',
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE guests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to guests" ON guests FOR ALL USING (true) WITH CHECK (true);
+
+-- Logos table: reusable logo library
+CREATE TABLE logos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL DEFAULT '',
+  url TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE logos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to logos" ON logos FOR ALL USING (true) WITH CHECK (true);
+
+-- Storage bucket for uploads (logos, avatars)
+INSERT INTO storage.buckets (id, name, public) VALUES ('uploads', 'uploads', true);
+
+CREATE POLICY "Allow public uploads" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'uploads');
+CREATE POLICY "Allow public read uploads" ON storage.objects FOR SELECT USING (bucket_id = 'uploads');
+CREATE POLICY "Allow public update uploads" ON storage.objects FOR UPDATE USING (bucket_id = 'uploads');
+CREATE POLICY "Allow public delete uploads" ON storage.objects FOR DELETE USING (bucket_id = 'uploads');
+
+-- Auto-update updated_at
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER projects_updated_at BEFORE UPDATE ON projects FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER guests_updated_at BEFORE UPDATE ON guests FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER logos_updated_at BEFORE UPDATE ON logos FOR EACH ROW EXECUTE FUNCTION update_updated_at();
