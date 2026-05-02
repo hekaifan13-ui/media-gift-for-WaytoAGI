@@ -7,7 +7,7 @@ import {
   Image as ImageIcon, Download, ArrowLeft, Wand2, RefreshCw, 
   Calendar, MapPin, User, AlignLeft, UploadCloud, QrCode, Type, Sparkles, Plus, Trash2, Edit2, Hexagon, Layout,
   Maximize2, Minimize2, MousePointer2, Move, ZoomIn, ZoomOut, RotateCcw, Save, BookUser
-} from 'lucide-react';
+} from '../lib/icons';
 import AIGenerator from './AIGenerator';
 import ImageCropper from './ImageCropper';
 import ImageGenModal from './ImageGenModal';

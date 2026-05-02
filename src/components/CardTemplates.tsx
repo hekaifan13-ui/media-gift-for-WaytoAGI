@@ -2,7 +2,7 @@
 
 import React, { forwardRef, useState } from 'react';
 import { PostcardData, TemplateId } from '../types';
-import { MapPin, Stamp, Globe, Heart, Feather, Film, Leaf, Zap, Minus, FileCode, GitBranch, Search, Settings, MoreHorizontal, X, Code, ChevronRight, ChevronDown, Layout, QrCode, User, Move, Image as ImageIcon } from 'lucide-react';
+import { MapPin, Stamp, Globe, Heart, Feather, Film, Leaf, Zap, Minus, FileCode, GitBranch, Search, Settings, MoreHorizontal, X, Code, ChevronRight, ChevronDown, Layout, QrCode, User, Move, Image as ImageIcon } from '../lib/icons';
 
 interface TemplateProps {
   data: PostcardData;

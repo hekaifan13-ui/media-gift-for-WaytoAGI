@@ -5,7 +5,7 @@ import { TEMPLATES } from '../constants';
 import { 
   Sparkles, MousePointerClick, Code, Image as ImageIcon, Box,
   X, LayoutGrid
-} from 'lucide-react';
+} from '../lib/icons';
 
 interface IntroBoxProps {
   onOpen: () => void;

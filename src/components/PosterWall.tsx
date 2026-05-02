@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { TemplateId } from '../types';
 import { fetchProjects, deleteProject, ProjectListItem } from '../services/api';
 import { TEMPLATES } from '../constants';
-import { Plus, Trash2, Edit2, LayoutGrid, Search, Film, Code, Image as ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Edit2, LayoutGrid, Search, Film, Code, Image as ImageIcon } from '../lib/icons';
 import { motion, AnimatePresence } from '../lib/motion';
 
 interface PosterWallProps {

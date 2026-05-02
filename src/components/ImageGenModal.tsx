@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { generateCoverImage } from '../services/geminiService';
-import { Sparkles, Loader2, X, Image as ImageIcon, Check, Download } from 'lucide-react';
+import { Sparkles, Loader2, X, Image as ImageIcon, Check, Download } from '../lib/icons';
 
 interface ImageGenModalProps {
   onSelect: (base64Image: string) => void;
