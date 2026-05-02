@@ -42,6 +42,7 @@ export interface PostcardData {
   authorsLayout?: { x: number; y: number; scale: number };
   authorsTextColor?: string;
   logos?: string[];
+  logosLayout?: { x: number; y: number; scale: number };
   logoSeparatorColor?: string;
   logoStyle?: 'white-text' | 'black-text';
   liveTopic?: string;

@@ -75,6 +75,39 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
     onUpdateData('authorsLayout', { ...layout, scale: newScale });
   };
 
+  // --- Logos Drag & Scale Logic ---
+  const handleLogosMouseDown = (e: React.MouseEvent) => {
+    if (isExporting || !onUpdateData) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialLayout = data.logosLayout || { x: 0, y: 0, scale: 1 };
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const dx = (moveEvent.clientX - startX) / scale;
+      const dy = (moveEvent.clientY - startY) / scale;
+      onUpdateData('logosLayout', { ...initialLayout, x: initialLayout.x + dx, y: initialLayout.y + dy });
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
+  const handleLogosWheel = (e: React.WheelEvent) => {
+    if (isExporting || !onUpdateData) return;
+    e.stopPropagation();
+    const layout = data.logosLayout || { x: 0, y: 0, scale: 1 };
+    const delta = e.deltaY > 0 ? -0.05 : 0.05;
+    const newScale = Math.min(Math.max(layout.scale + delta, 0.2), 3.0);
+    onUpdateData('logosLayout', { ...layout, scale: newScale });
+  };
+
   return (
     <div 
       ref={ref} 
@@ -95,17 +128,35 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
           {/* Gradient Overlay at bottom of image */}
           <div className="absolute bottom-0 left-0 right-0 h-60 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-80 pointer-events-none"></div>
 
-          {/* LOGOS SECTION */}
+          {/* LOGOS SECTION - draggable/scalable */}
           {data.logos && data.logos.length > 0 && (
-            <div className="absolute top-6 right-8 z-30 flex items-center gap-4">
-               {data.logos.map((logo, index) => (
-                 <React.Fragment key={index}>
-                    <img src={logo} alt="Logo" className="h-20 w-auto object-contain" />
+            <div 
+              className={`absolute z-30 origin-top-right ${isExporting ? '' : 'cursor-move group/logos'}`}
+              style={{
+                top: '24px',
+                right: '32px',
+                transform: `translate(${data.logosLayout?.x || 0}px, ${data.logosLayout?.y || 0}px) scale(${data.logosLayout?.scale || 1})`
+              }}
+              onMouseDown={handleLogosMouseDown}
+              onWheel={handleLogosWheel}
+            >
+              {!isExporting && (
+                <div className="absolute -inset-2 border border-dashed border-white/40 rounded-lg opacity-0 group-hover/logos:opacity-100 transition-opacity pointer-events-none flex items-start justify-end pr-1 pt-1">
+                  <div className="bg-black/50 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-md scale-[0.8] origin-top-right whitespace-nowrap">
+                    Drag to move · Scroll to scale
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-4">
+                {data.logos.map((logo, index) => (
+                  <React.Fragment key={index}>
+                    <img src={logo} alt="Logo" className="h-20 w-auto object-contain select-none pointer-events-none" />
                     {index < (data.logos?.length || 0) - 1 && (
-                       <span className="text-2xl font-light opacity-80" style={{ color: data.logoSeparatorColor || '#ffffff' }}>丨</span>
+                      <span className="text-2xl font-light opacity-80 select-none" style={{ color: data.logoSeparatorColor || '#ffffff' }}>丨</span>
                     )}
-                 </React.Fragment>
-               ))}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
           )}
 
@@ -376,6 +427,39 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
   const bgPreset = LIVESTREAM_BG_PRESETS[bgKey] ?? LIVESTREAM_BG_PRESETS['nebula-light'];
   const isDark = bgPreset.isDark;
 
+  // --- Logos Drag & Scale Logic ---
+  const handleLogosMouseDown = (e: React.MouseEvent) => {
+    if (isExporting || !onUpdateData) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialLayout = data.logosLayout || { x: 0, y: 0, scale: 1 };
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const dx = (moveEvent.clientX - startX) / scale;
+      const dy = (moveEvent.clientY - startY) / scale;
+      onUpdateData('logosLayout', { ...initialLayout, x: initialLayout.x + dx, y: initialLayout.y + dy });
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
+  const handleLogosWheel = (e: React.WheelEvent) => {
+    if (isExporting || !onUpdateData) return;
+    e.stopPropagation();
+    const layout = data.logosLayout || { x: 0, y: 0, scale: 1 };
+    const delta = e.deltaY > 0 ? -0.05 : 0.05;
+    const newScale = Math.min(Math.max(layout.scale + delta, 0.2), 3.0);
+    onUpdateData('logosLayout', { ...layout, scale: newScale });
+  };
+
   return (
     <div 
       ref={ref} 
@@ -412,14 +496,36 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
           </h1>
         </div>
         
-        {/* Logo Area */}
-        <div className="flex items-center gap-5">
+        {/* Logo Area - all logos with separators, draggable, contrast-adapted */}
+        <div 
+          className={`flex items-center gap-4 ${isExporting ? '' : 'cursor-move group/logos'}`}
+          style={{
+            transform: `translate(${data.logosLayout?.x || 0}px, ${data.logosLayout?.y || 0}px) scale(${data.logosLayout?.scale || 1})`,
+            transformOrigin: 'center',
+          }}
+          onMouseDown={handleLogosMouseDown}
+          onWheel={handleLogosWheel}
+        >
+          {!isExporting && (
+            <div className="absolute -inset-2 border border-dashed rounded-lg opacity-0 group-hover/logos:opacity-100 transition-opacity pointer-events-none flex items-start justify-end pr-1 pt-1" style={{ borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)' }}>
+              <div className={`text-[10px] px-2 py-0.5 rounded backdrop-blur-md scale-[0.8] origin-top-right whitespace-nowrap ${isDark ? 'bg-white/20 text-white' : 'bg-black/10 text-gray-700'}`}>
+                Drag · Scroll
+              </div>
+            </div>
+          )}
           {data.logos && data.logos.length > 0 ? (
-            <img src={data.logos[0]} alt="Logo" className="h-20 object-contain" />
+            data.logos.map((logo, index) => (
+              <React.Fragment key={index}>
+                <img src={logo} alt="Logo" className="h-20 w-auto object-contain select-none pointer-events-none" />
+                {index < (data.logos?.length || 0) - 1 && (
+                  <span className="text-3xl font-light select-none pointer-events-none" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.3)' }}>丨</span>
+                )}
+              </React.Fragment>
+            ))
           ) : (
             <div className="flex items-center gap-4">
-               <div className="w-12 h-12 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 rounded-2xl shadow-sm"></div>
-               <span className={`font-black italic text-3xl tracking-tighter transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-800'}`}>WaytoAGI</span>
+               <div className="w-12 h-12 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 rounded-2xl shadow-sm pointer-events-none"></div>
+               <span className={`font-black italic text-3xl tracking-tighter transition-colors duration-500 pointer-events-none ${isDark ? 'text-white' : 'text-gray-800'}`}>WaytoAGI</span>
             </div>
           )}
         </div>
