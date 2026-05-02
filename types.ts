@@ -43,6 +43,8 @@ export interface PostcardData {
   logoStyle?: 'white-text' | 'black-text';
   liveTopic?: string;
   theme?: 'light' | 'dark';
+  bgStyle?: string;        // Livestream full-card background preset key
+  footerBgStyle?: string;  // Modern footer background preset key
 }
 
 export interface TemplateConfig {

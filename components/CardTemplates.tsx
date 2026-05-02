@@ -1,7 +1,8 @@
 
 import React, { forwardRef, useState } from 'react';
 import { PostcardData, TemplateId } from '../types';
-import { MapPin, Stamp, Globe, Heart, Feather, Film, Leaf, Zap, Minus, FileCode, GitBranch, Search, Settings, MoreHorizontal, X, Code, ChevronRight, ChevronDown, Layout, QrCode, User, Move, Image as ImageIcon } from 'lucide-react';
+import { Feather, FileCode, GitBranch, Search, Settings, Layout, QrCode, User, Image as ImageIcon } from 'lucide-react';
+import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS } from './bgPresets';
 
 // Grain noise SVG data URI for granular texture overlay
 const GRAIN_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`;
@@ -27,9 +28,10 @@ interface TemplateProps {
   isExporting?: boolean;
 }
 
-// 2. Modern (Updated to support 10:16 Vertical OR 3:4 Portrait Full)
+// 1. Modern (10:16 Vertical OR 3:4 Portrait Full)
 const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 1, onUpdateData, isExporting = false }, ref) => {
   const isFullPortrait = data.modernLayout === 'portrait-full';
+  const footerPreset = FOOTER_BG_PRESETS[data.footerBgStyle || 'mint'] ?? FOOTER_BG_PRESETS['mint'];
 
   // --- Authors Drag & Scale Logic ---
   const [isDraggingAuthors, setIsDraggingAuthors] = useState(false);
@@ -45,9 +47,8 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
     const initialLayout = data.authorsLayout || { x: 0, y: 0, scale: 1 };
 
     const onMouseMove = (moveEvent: MouseEvent) => {
-      const dx = (moveEvent.clientX - startX) / scale; // Adjust delta by preview scale
+      const dx = (moveEvent.clientX - startX) / scale;
       const dy = (moveEvent.clientY - startY) / scale;
-      
       onUpdateData('authorsLayout', {
         ...initialLayout,
         x: initialLayout.x + dx,
@@ -68,23 +69,12 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
   const handleAuthorsWheel = (e: React.WheelEvent) => {
     if (isExporting || !onUpdateData) return;
     e.stopPropagation();
-    // Prevent page scroll if possible, though passive listeners make this hard in React
-    
     const layout = data.authorsLayout || { x: 0, y: 0, scale: 1 };
-    // Determine direction
     const delta = e.deltaY > 0 ? -0.05 : 0.05;
-    const newScale = Math.min(Math.max(layout.scale + delta, 0.2), 3.0); // Limit scale
-
-    onUpdateData('authorsLayout', {
-      ...layout,
-      scale: newScale
-    });
+    const newScale = Math.min(Math.max(layout.scale + delta, 0.2), 3.0);
+    onUpdateData('authorsLayout', { ...layout, scale: newScale });
   };
 
-  // Dimensions
-  // Standard (10:16): w-[720px] h-[1152px]
-  // Portrait (3:4): w-[864px] h-[1152px]
-  
   return (
     <div 
       ref={ref} 
@@ -97,12 +87,12 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
             <img src={data.image} alt="Cover" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
           ) : (
              <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 text-gray-300">
-               <div className={`border-2 border-dashed border-gray-300 rounded mb-2 w-20 h-28`}></div>
+               <div className="border-2 border-dashed border-gray-300 rounded mb-2 w-20 h-28"></div>
                <span className="text-xs font-bold uppercase tracking-widest">Cover Photo</span>
              </div>
           )}
           
-          {/* Subtle Gradient Overlay at bottom of image */}
+          {/* Gradient Overlay at bottom of image */}
           <div className="absolute bottom-0 left-0 right-0 h-60 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-80 pointer-events-none"></div>
 
           {/* LOGOS SECTION */}
@@ -112,12 +102,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
                  <React.Fragment key={index}>
                     <img src={logo} alt="Logo" className="h-20 w-auto object-contain" />
                     {index < (data.logos?.length || 0) - 1 && (
-                       <span 
-                        className="text-2xl font-light opacity-80" 
-                        style={{ color: data.logoSeparatorColor || '#ffffff' }}
-                       >
-                        丨
-                       </span>
+                       <span className="text-2xl font-light opacity-80" style={{ color: data.logoSeparatorColor || '#ffffff' }}>丨</span>
                     )}
                  </React.Fragment>
                ))}
@@ -200,16 +185,10 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
                           )}
                         </div>
                         <div className="flex flex-col justify-center pointer-events-none text-left">
-                          <span 
-                             className="font-black text-sm tracking-wide drop-shadow-md whitespace-nowrap"
-                             style={{ color: data.authorsTextColor || '#ffffff' }}
-                          >
+                          <span className="font-black text-sm tracking-wide drop-shadow-md whitespace-nowrap" style={{ color: data.authorsTextColor || '#ffffff' }}>
                              {author.name || "Name"}
                           </span>
-                          <span 
-                             className="text-[10px] tracking-wider mt-0.5 drop-shadow-sm whitespace-pre-wrap leading-tight font-medium"
-                             style={{ color: data.authorsTextColor || '#ffffff', opacity: 0.9, wordBreak: 'keep-all' }}
-                          >
+                          <span className="text-[10px] tracking-wider mt-0.5 drop-shadow-sm whitespace-pre-wrap leading-tight font-medium" style={{ color: data.authorsTextColor || '#ffffff', opacity: 0.9, wordBreak: 'keep-all' }}>
                              {author.title || "Title"}
                           </span>
                         </div>
@@ -220,30 +199,27 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
           )}
        </div>
 
-       {/* BOTTOM SECTION: Footer */}
+       {/* BOTTOM SECTION: Footer with selectable background */}
        {!isFullPortrait && (
-         <div className="flex-1 px-12 py-6 flex items-center justify-between border-t border-gray-100 relative z-10 overflow-hidden">
-            {/* Gradient Background */}
-            <div
-              className="absolute inset-0 -z-10"
-              style={{
-                background: 'linear-gradient(135deg, #f0fdf4 0%, #e0f7fa 35%, #eff6ff 65%, #fdf4ff 100%)',
-              }}
-            />
-            {/* Radial glow accents */}
-            <div
-              className="absolute -top-10 -left-10 w-64 h-64 rounded-full -z-10 opacity-40"
-              style={{ background: 'radial-gradient(circle, #67e8f9 0%, transparent 70%)' }}
-            />
-            <div
-              className="absolute -bottom-10 -right-10 w-56 h-56 rounded-full -z-10 opacity-30"
-              style={{ background: 'radial-gradient(circle, #c4b5fd 0%, transparent 70%)' }}
-            />
+         <div className="flex-1 px-12 py-6 flex items-center justify-between border-t border-gray-100/50 relative z-10 overflow-hidden">
+            {/* Base gradient background */}
+            <div className="absolute inset-0 -z-10" style={{ background: footerPreset.bg }} />
+
+            {/* Radial glow accents (only if preset has glows) */}
+            {footerPreset.glowA && (
+              <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full -z-10 opacity-100 pointer-events-none"
+                style={{ background: `radial-gradient(circle, ${footerPreset.glowA} 0%, transparent 70%)` }} />
+            )}
+            {footerPreset.glowB && (
+              <div className="absolute -bottom-16 -right-10 w-64 h-64 rounded-full -z-10 opacity-100 pointer-events-none"
+                style={{ background: `radial-gradient(circle, ${footerPreset.glowB} 0%, transparent 70%)` }} />
+            )}
+
             {/* Grain overlay */}
-            <GrainOverlay opacity={0.07} />
+            {footerPreset.grainOpacity > 0 && <GrainOverlay opacity={footerPreset.grainOpacity} />}
             
             {/* Left: Text Description */}
-            <div className="flex-1 pr-10 flex flex-col justify-center items-start h-full min-w-0">
+            <div className="flex-1 pr-10 flex flex-col justify-center items-start h-full min-w-0 relative z-10">
                <p className="text-[25px] font-light text-gray-500 mb-3 flex items-center gap-5">
                   <span className="w-5 h-5 bg-cyan-500 rounded-full"></span>
                   {data.date || "TODAY"}
@@ -261,10 +237,10 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
             </div>
 
             {/* Right: QR Codes */}
-            <div className="flex items-center gap-8 h-full shrink-0">
+            <div className="flex items-center gap-8 h-full shrink-0 relative z-10">
                {/* QR Code 1 */}
                <div className="flex flex-col items-center gap-4 justify-center h-full">
-                  <div className="w-[156px] h-[156px] bg-white rounded-2xl border-2 border-gray-100 p-4 flex items-center justify-center relative overflow-hidden shadow-sm">
+                  <div className="w-[156px] h-[156px] bg-white rounded-2xl border-2 border-white/60 p-4 flex items-center justify-center relative overflow-hidden shadow-md">
                      {data.qrCode1 ? (
                         <img src={data.qrCode1} className="w-full h-full object-contain rounded-xl" style={{ transform: 'scale(1.15)', transformOrigin: 'center' }} alt="QR1" />
                      ) : (
@@ -278,7 +254,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
 
                {/* QR Code 2 */}
                <div className="flex flex-col items-center gap-4 justify-center h-full">
-                  <div className="w-[156px] h-[156px] bg-white rounded-2xl border-2 border-gray-100 p-4 flex items-center justify-center relative overflow-hidden shadow-sm">
+                  <div className="w-[156px] h-[156px] bg-white rounded-2xl border-2 border-white/60 p-4 flex items-center justify-center relative overflow-hidden shadow-md">
                      {data.qrCode2 ? (
                         <img src={data.qrCode2} className="w-full h-full object-contain rounded-xl" style={{ transform: 'scale(1.15)', transformOrigin: 'center' }} alt="QR2" />
                      ) : (
@@ -297,7 +273,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
   );
 });
 
-// 9. Code / Dev
+// 2. Code / Dev
 const CodeTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 1 }, ref) => {
   return (
     <div ref={ref} className="w-[1080px] h-[720px] bg-[#1e1e1e] shadow-2xl relative overflow-hidden flex flex-col font-mono text-sm" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
@@ -325,16 +301,12 @@ const CodeTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 
 
           {/* Split Content */}
           <div className="flex-1 flex min-w-0">
-             
              {/* Left: Code Editor */}
              <div className="w-[55%] p-8 text-[#d4d4d4] leading-relaxed text-sm overflow-hidden border-r border-[#111] flex flex-col bg-[#1e1e1e]">
                 <div className="flex gap-5 h-full">
-                    {/* Line Numbers */}
                    <div className="text-[#6e7681] select-none text-right font-mono min-w-[2.5rem]">
                       {Array.from({length: 15}).map((_, i) => <div key={i}>{i+1}</div>)}
                    </div>
-                   
-                   {/* Code Content */}
                    <div className="font-mono whitespace-nowrap">
                       <p><span className="text-[#c586c0]">const</span> <span className="text-[#4fc1ff]">Profile</span> = &#123;</p>
                       <p>&nbsp;&nbsp;<span className="text-[#9cdcfe]">name</span>: <span className="text-[#ce9178]">"{data.sender || "Dev"}"</span>,</p>
@@ -350,7 +322,6 @@ const CodeTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 
 
              {/* Right: Preview Interface */}
              <div className="w-[45%] flex flex-col bg-[#ffffff] h-full relative">
-                {/* Browser Toolbar */}
                 <div className="h-12 bg-[#f0f0f0] border-b border-[#e0e0e0] flex items-center px-5 gap-4 shrink-0">
                    <div className="flex gap-2">
                       <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
@@ -360,10 +331,7 @@ const CodeTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 
                       <span className="text-xs text-gray-400">localhost:3000/profile</span>
                    </div>
                 </div>
-
-                {/* Simulated Webpage Content */}
                 <div className="flex-1 overflow-hidden relative flex flex-col">
-                   {/* Hero Image - 4:3 Aspect Ratio */}
                    <div className="w-full aspect-[4/3] bg-gray-100 relative group overflow-hidden shrink-0">
                       {data.image ? (
                         <img src={data.image} alt="Preview" className="w-full h-full object-cover" />
@@ -372,21 +340,12 @@ const CodeTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 
                            <ImageIcon size={40} />
                         </div>
                       )}
-                      {/* Badge */}
-                      <div className="absolute top-5 right-5 bg-black/70 backdrop-blur-md text-white text-xs px-2.5 py-1.5 rounded">
-                         v2.0
-                      </div>
+                      <div className="absolute top-5 right-5 bg-black/70 backdrop-blur-md text-white text-xs px-2.5 py-1.5 rounded">v2.0</div>
                    </div>
-
-                   {/* Body Text */}
                    <div className="p-8 flex-1 flex flex-col min-h-0">
-                      <h1 className="text-3xl font-black text-gray-800 leading-tight mb-3 truncate">
-                         {data.sender || "Name"}
-                      </h1>
+                      <h1 className="text-3xl font-black text-gray-800 leading-tight mb-3 truncate">{data.sender || "Name"}</h1>
                       <div className="flex gap-3 mb-5">
-                         <span className="px-3 py-1.5 bg-blue-50 text-blue-600 text-xs font-black rounded uppercase tracking-wider border border-blue-100">
-                            Developer
-                         </span>
+                         <span className="px-3 py-1.5 bg-blue-50 text-blue-600 text-xs font-black rounded uppercase tracking-wider border border-blue-100">Developer</span>
                       </div>
                       <p className="text-sm text-gray-600 leading-relaxed font-sans line-clamp-4">
                          {data.message || "A passionate developer building digital experiences. This card represents my profile."}
@@ -394,7 +353,6 @@ const CodeTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 
                    </div>
                 </div>
              </div>
-
           </div>
        </div>
 
@@ -411,10 +369,13 @@ const CodeTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 
   );
 });
 
-// 10. Livestream Template
+// 3. Livestream Template
 const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 1, onUpdateData, isExporting = false }, ref) => {
-  const isDark = data.theme === 'dark';
-  
+  // Resolve background preset — fallback to theme-based solid for backwards compat
+  const bgKey = data.bgStyle || (data.theme === 'dark' ? 'solid-dark' : 'nebula-light');
+  const bgPreset = LIVESTREAM_BG_PRESETS[bgKey] ?? LIVESTREAM_BG_PRESETS['nebula-light'];
+  const isDark = bgPreset.isDark;
+
   return (
     <div 
       ref={ref} 
@@ -422,38 +383,26 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
       style={{ 
         transform: `scale(${scale})`, 
         transformOrigin: 'top left',
-        background: isDark
-          ? 'linear-gradient(135deg, #0d0d1a 0%, #1a0a2e 30%, #0a1628 60%, #1a1035 100%)'
-          : 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 30%, #e0f2fe 65%, #f0fdf4 100%)',
+        background: bgPreset.bg,
       }}
     >
-      {/* Radial glow accents for depth */}
-      <div
-        className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none"
-        style={{
-          background: isDark
-            ? 'radial-gradient(ellipse at top left, rgba(99,102,241,0.25) 0%, transparent 65%)'
-            : 'radial-gradient(ellipse at top left, rgba(167,139,250,0.3) 0%, transparent 65%)',
-        }}
-      />
-      <div
-        className="absolute bottom-0 right-0 w-[500px] h-[500px] pointer-events-none"
-        style={{
-          background: isDark
-            ? 'radial-gradient(ellipse at bottom right, rgba(56,189,248,0.15) 0%, transparent 65%)'
-            : 'radial-gradient(ellipse at bottom right, rgba(125,211,252,0.3) 0%, transparent 65%)',
-        }}
-      />
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] pointer-events-none"
-        style={{
-          background: isDark
-            ? 'radial-gradient(ellipse, rgba(139,92,246,0.08) 0%, transparent 70%)'
-            : 'radial-gradient(ellipse, rgba(196,181,253,0.2) 0%, transparent 70%)',
-        }}
-      />
+      {/* Radial glow accents */}
+      {bgPreset.glowA && (
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none"
+          style={{ background: `radial-gradient(ellipse at top left, ${bgPreset.glowA} 0%, transparent 65%)` }} />
+      )}
+      {bgPreset.glowB && (
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] pointer-events-none"
+          style={{ background: `radial-gradient(ellipse at bottom right, ${bgPreset.glowB} 0%, transparent 65%)` }} />
+      )}
+      {bgPreset.glowA && bgPreset.glowB && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] pointer-events-none"
+          style={{ background: `radial-gradient(ellipse, ${bgPreset.glowA.replace('0.', '0.0')} 0%, transparent 70%)` }} />
+      )}
+
       {/* Grain overlay */}
-      <GrainOverlay opacity={isDark ? 0.12 : 0.07} />
+      {bgPreset.grainOpacity > 0 && <GrainOverlay opacity={bgPreset.grainOpacity} />}
+
       {/* Top Header Bar */}
       <div className="px-10 py-6 flex items-center justify-between z-20">
         <div className={`flex items-center gap-6 rounded-3xl px-8 py-4 shadow-sm transition-colors duration-500 ${isDark ? 'bg-indigo-900/50 border border-indigo-500/30' : 'bg-[#c7d2fe]'}`}>
@@ -478,22 +427,17 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
 
       {/* Main Content Area */}
       <div className="flex-1 flex px-10 pb-10 gap-8 min-h-0 relative z-10">
-        {/* Left: Main Visual Area (Hollow 16:9) */}
-        <div 
-          className="aspect-[16/9] h-full border-[6px] border-[#6366f1] rounded-[32px] bg-transparent relative shrink-0 z-10"
-        >
-          {/* Subtle inner glow for the frame */}
+        {/* Left: Main Visual Area (Hollow 16:9 frame) */}
+        <div className="aspect-[16/9] h-full border-[6px] border-[#6366f1] rounded-[32px] bg-transparent relative shrink-0 z-10">
+          {/* ── Restored original solid boxShadow hollow-frame trick ── */}
+          {/* The huge spread fills everything outside the border box with the preset's solid bg color */}
           <div 
-            className="absolute inset-0 rounded-[28px] pointer-events-none"
-            style={{ 
-              boxShadow: isDark
-                ? 'inset 0 0 40px rgba(99,102,241,0.12), 0 0 60px rgba(99,102,241,0.15)'
-                : 'inset 0 0 40px rgba(99,102,241,0.07), 0 0 40px rgba(99,102,241,0.1)',
-            }}
+            className="absolute inset-[-2px] -z-10 rounded-[28px] pointer-events-none"
+            style={{ boxShadow: `0 0 0 2000px ${bgPreset.shadowColor}` }}
           ></div>
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-indigo-200/30 pointer-events-none">
-             <ImageIcon size={80} className="mb-4 opacity-10" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+             <ImageIcon size={80} className={`mb-4 ${isDark ? 'text-indigo-200/20' : 'text-indigo-300/20'}`} />
           </div>
           
           {/* Corner Accents */}
@@ -503,9 +447,8 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
           <div className="absolute bottom-6 right-6 w-12 h-12 border-b-4 border-r-4 border-indigo-500/50 rounded-br-lg"></div>
         </div>
 
-        {/* Right: Compressed Sidebar */}
+        {/* Right: Sidebar */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
-          {/* Guests Header */}
           <div className="flex-1 flex flex-col min-h-0">
             <h2 className={`text-2xl font-black border-l-[8px] border-[#6366f1] pl-4 mb-6 shrink-0 transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`}>直播嘉宾</h2>
             
@@ -573,7 +516,9 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
                           </div>
                         )}
                       </div>
-                      <span className={`font-black mb-1 truncate w-full px-2 transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`} style={{ fontSize: data.authors.length > 4 ? '1rem' : '1.25rem' }}>{guest.name || "嘉宾姓名"}</span>
+                      <span className={`font-black mb-1 truncate w-full px-2 transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`} style={{ fontSize: data.authors.length > 4 ? '1rem' : '1.25rem' }}>
+                        {guest.name || "嘉宾姓名"}
+                      </span>
                       <p className={`leading-tight whitespace-pre-wrap px-4 font-medium transition-colors duration-500 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} style={{ fontSize: data.authors.length > 4 ? '0.75rem' : '0.6875rem', wordBreak: 'keep-all' }}>
                         {guest.title || "嘉宾介绍/头衔"}
                       </p>
@@ -581,7 +526,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center opacity-10 py-10">
+                <div className={`flex flex-col items-center py-10 ${isDark ? 'text-white/10' : 'text-gray-900/10'}`}>
                    <User size={60} />
                    <span className="text-sm font-black mt-4 uppercase tracking-widest">No Guests</span>
                 </div>
@@ -589,13 +534,13 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
             </div>
           </div>
 
-          {/* QR Code Area - Shrunk */}
+          {/* QR Code Area */}
           <div className="mt-6 flex flex-col items-center shrink-0">
             <div className={`w-36 h-36 p-3 rounded-2xl border-2 shadow-sm relative mb-3 transition-colors duration-500 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100'}`}>
               {data.qrCode1 ? (
                 <img src={data.qrCode1} alt="QR" className="w-full h-full object-contain" style={{ transform: 'scale(1.15)', transformOrigin: 'center' }} />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-100">
+                <div className="w-full h-full flex items-center justify-center">
                   <QrCode size={66} className={isDark ? 'text-gray-600' : 'text-gray-100'} />
                 </div>
               )}

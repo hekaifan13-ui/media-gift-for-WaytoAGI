@@ -2,6 +2,7 @@
 import React, { useRef, useState, DragEvent, ClipboardEvent, useEffect } from 'react';
 import { PostcardData, TemplateId, Author } from '../types';
 import { getTemplateComponent } from './CardTemplates';
+import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS } from './bgPresets';
 import { 
   Image as ImageIcon, Download, ArrowLeft, Wand2, RefreshCw, 
   Calendar, MapPin, User, AlignLeft, UploadCloud, QrCode, Type, Sparkles, Plus, Trash2, Edit2, Hexagon, Layout,
@@ -404,6 +405,26 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack }) => {
                   placeholder="Enter live stream topic..." 
                 />
               </div>
+
+              {/* Card 3 Background Picker */}
+              <div className="space-y-2 pt-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Card Background</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {Object.entries(LIVESTREAM_BG_PRESETS).map(([key, preset]) => (
+                    <button
+                      key={key}
+                      title={preset.label}
+                      onClick={() => updateData('bgStyle', key)}
+                      className={`h-10 rounded-xl border-2 transition-all flex items-end justify-start p-1.5 overflow-hidden ${(data.bgStyle || 'nebula-light') === key ? 'border-indigo-500 shadow-md scale-[1.04]' : 'border-transparent hover:border-indigo-200'}`}
+                      style={{ background: preset.bg }}
+                    >
+                      <span className={`text-[9px] font-black tracking-wide truncate leading-none ${preset.isDark ? 'text-white/80' : 'text-gray-700/80'}`}>
+                        {preset.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </section>
           )}
 
@@ -423,6 +444,24 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack }) => {
                      <div className="flex gap-2 mb-4 bg-gray-100 p-1 rounded-lg">
                         <button onClick={() => updateData('modernLayout', 'standard')} className={`flex-1 py-1.5 text-[10px] font-bold uppercase rounded-md transition-all ${data.modernLayout !== 'portrait-full' ? 'bg-white shadow-sm text-cyan-600' : 'text-gray-400 hover:text-gray-600'}`}>Standard (10:16)</button>
                         <button onClick={() => updateData('modernLayout', 'portrait-full')} className={`flex-1 py-1.5 text-[10px] font-bold uppercase rounded-md transition-all ${data.modernLayout === 'portrait-full' ? 'bg-white shadow-sm text-cyan-600' : 'text-gray-400 hover:text-gray-600'}`}>Portrait (3:4)</button>
+                     </div>
+                   )}
+
+                   {/* Card 1 Footer Background Picker */}
+                   {data.templateId === TemplateId.MODERN && data.modernLayout !== 'portrait-full' && (
+                     <div className="space-y-2 mb-4">
+                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Footer Background</label>
+                       <div className="grid grid-cols-7 gap-1.5">
+                         {Object.entries(FOOTER_BG_PRESETS).map(([key, preset]) => (
+                           <button
+                             key={key}
+                             title={preset.label}
+                             onClick={() => updateData('footerBgStyle', key)}
+                             className={`h-7 rounded-lg border-2 transition-all hover:scale-110 ${(data.footerBgStyle || 'mint') === key ? 'border-cyan-500 scale-110 shadow-sm ring-1 ring-cyan-300' : 'border-transparent hover:border-gray-200'}`}
+                             style={{ background: preset.bg }}
+                           />
+                         ))}
+                       </div>
                      </div>
                    )}
                    

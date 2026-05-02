@@ -43,5 +43,7 @@ export const INITIAL_DATA: PostcardData = {
   logos: ["/svg/灰底黑色2.svg"],
   logoSeparatorColor: "#ffffff",
   logoStyle: "black-text",
-  liveTopic: ""
+  liveTopic: "",
+  bgStyle: "nebula-light",
+  footerBgStyle: "mint",
 };
