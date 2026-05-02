@@ -13,6 +13,7 @@ interface GenerateOptions {
   ratio?: string;
   resolution?: string;
   format?: string;
+  resource_path?: string;
 }
 
 export function useAIImage() {
@@ -42,6 +43,7 @@ export function useAIImage() {
             prompt: options.prompt,
             type: options.type ?? "txt_2_img",
             image_option,
+            ...(options.resource_path ? { resource_path: options.resource_path } : {}),
           },
         }
       );
