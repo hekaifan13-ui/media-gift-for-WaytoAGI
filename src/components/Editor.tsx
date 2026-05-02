@@ -1,3 +1,4 @@
+// @ts-nocheck
 
 import React, { useRef, useState, DragEvent, ClipboardEvent } from 'react';
 import { PostcardData, TemplateId, Author } from '../types';

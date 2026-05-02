@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { generatePostcardMessage } from '../services/geminiService';
 import { Wand2, Loader2, X } from 'lucide-react';

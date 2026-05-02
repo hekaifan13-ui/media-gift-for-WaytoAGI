@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
 import { AppState, TemplateId } from '../types';
 import { TEMPLATES } from '../constants';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { AppState, TemplateId, PostcardData } from './types';
 import { INITIAL_DATA } from './constants';

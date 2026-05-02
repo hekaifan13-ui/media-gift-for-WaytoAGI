@@ -3,6 +3,8 @@
 @tailwind utilities;
 
 body {
+  margin: 0;
+  padding: 0;
   background-color: #e5e5f7;
   background-image:
     linear-gradient(#d5d5ed 2px, transparent 2px),
@@ -12,34 +14,12 @@ body {
   background-size: 50px 50px, 50px 50px, 10px 10px, 10px 10px;
   background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
   overflow-x: hidden;
-  font-family: "Montserrat", sans-serif;
 }
 
 .preserve-3d {
   transform-style: preserve-3d;
 }
 
-.scene {
-  perspective: 1200px;
-}
-
-.box-group {
-  transform-style: preserve-3d;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e5e7eb;
-  border-radius: 2px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #d1d5db;
-}
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }

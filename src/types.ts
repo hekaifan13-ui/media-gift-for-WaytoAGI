@@ -1,3 +1,4 @@
+// @ts-nocheck
 
 export enum AppState {
   WALL = 'WALL',

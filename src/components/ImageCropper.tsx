@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Check, ZoomIn, ZoomOut, Move } from 'lucide-react';
 

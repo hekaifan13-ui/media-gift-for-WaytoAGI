@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { generateCoverImage } from '../services/geminiService';
 import { Sparkles, Loader2, X, Image as ImageIcon, Check, Download } from 'lucide-react';

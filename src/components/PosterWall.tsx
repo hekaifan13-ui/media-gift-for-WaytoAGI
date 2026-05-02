@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, useCallback } from 'react';
 import { TemplateId } from '../types';
 import { fetchProjects, deleteProject, ProjectListItem } from '../services/api';

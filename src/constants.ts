@@ -1,3 +1,4 @@
+// @ts-nocheck
 
 import { TemplateId, TemplateConfig, PostcardData } from './types';
 

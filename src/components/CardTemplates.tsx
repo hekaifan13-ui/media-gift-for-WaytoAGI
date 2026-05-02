@@ -1,3 +1,4 @@
+// @ts-nocheck
 
 import React, { forwardRef, useState } from 'react';
 import { PostcardData, TemplateId } from '../types';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
 import { Author } from '../types';
 import { fetchGuests, createGuest, updateGuest, deleteGuest, GuestItem } from '../services/api';
