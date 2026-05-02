@@ -1,7 +1,0 @@
-{
-  "name": "Remix: Box of Memories - Postcard Creator",
-  "description": "A delightful postcard generator that simulates picking a card from a memory box. Design, write with AI, and share your moments.",
-  "requestFramePermissions": [
-    "camera"
-  ]
-}
