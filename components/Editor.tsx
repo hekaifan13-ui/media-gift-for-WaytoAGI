@@ -4,15 +4,13 @@ import { PostcardData, TemplateId, Author } from '../types';
 import { getTemplateComponent } from './CardTemplates';
 import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS } from './bgPresets';
 import { 
-  Image as ImageIcon, Download, ArrowLeft, Wand2, RefreshCw, Save,
+  Image as ImageIcon, Download, ArrowLeft, Wand2, RefreshCw, Save, ExternalLink,
   Calendar, MapPin, User, AlignLeft, UploadCloud, QrCode, Type, Sparkles, Plus, Trash2, Edit2, Hexagon, Layout,
-  Maximize2, Minimize2, MousePointer2, Move, ZoomIn, ZoomOut, RotateCcw, Check
+  Maximize2, Minimize2, MousePointer2, Move, ZoomIn, ZoomOut, RotateCcw, Check, Users, Layers
 } from 'lucide-react';
 import AIGenerator from './AIGenerator';
 import ImageCropper from './ImageCropper';
 import ImageGenModal from './ImageGenModal';
-import LogoLibrary from './LogoLibrary';
-import GuestLibrary from './GuestLibrary';
 import { motion, AnimatePresence } from 'motion/react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { createProject, updateProject } from '../services/storageService';
@@ -27,6 +25,8 @@ interface EditorProps {
   projectId: string | null;
   projectTitle: string;
   onProjectSaved: (id: string, title: string) => void;
+  onGoToGuestLibrary: () => void;
+  onGoToLogoLibrary: () => void;
 }
 
 interface CroppingState {
@@ -36,7 +36,7 @@ interface CroppingState {
   aspectRatio: number;
 }
 
-const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, projectTitle, onProjectSaved }) => {
+const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, projectTitle, onProjectSaved, onGoToGuestLibrary, onGoToLogoLibrary }) => {
   const [showAI, setShowAI] = useState(false);
   const [showImageGen, setShowImageGen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -254,21 +254,6 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
     }
   };
 
-  const handleSelectLogoFromLibrary = (url: string) => {
-    const newLogos = [...(data.logos || []), url];
-    updateData('logos', newLogos);
-  };
-
-  const handleSelectGuestFromLibrary = (guest: { name: string; title: string; image: string | null }) => {
-    const newAuthor: Author = {
-      id: Date.now().toString(),
-      name: guest.name,
-      title: guest.title,
-      image: guest.image,
-    };
-    updateData('authors', [...(data.authors || []), newAuthor]);
-  };
-
   const getPreviewScale = () => {
      if (isCanvasMode) return data.templateId === TemplateId.CODE ? 0.875 : 1;
      if (data.templateId === TemplateId.MODERN) return 0.48;
@@ -459,10 +444,15 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                    ))
                 )}
              </div>
-             {/* Logo Library */}
-             <div className="mt-4 pt-4 border-t border-gray-100">
-               <LogoLibrary onSelectLogo={handleSelectLogoFromLibrary} />
-             </div>
+             {/* Open Logo Library button */}
+             <button
+               onClick={onGoToLogoLibrary}
+               className="w-full flex items-center justify-center gap-2 mt-3 py-2.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 rounded-xl text-xs font-bold text-gray-600 hover:text-indigo-700 transition-all"
+             >
+               <Layers size={14} />
+               Open Logo Library
+               <ExternalLink size={12} className="opacity-50" />
+             </button>
           </section>
 
           {data.templateId === TemplateId.LIVESTREAM && (
@@ -677,9 +667,16 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                    )}
                 </section>
 
-                {/* Guest Library */}
-                <section className="space-y-3 border-b border-gray-100 pb-6">
-                  <GuestLibrary onSelectGuest={handleSelectGuestFromLibrary} />
+                {/* Open Guest Library button */}
+                <section className="pb-6 border-b border-gray-100">
+                  <button
+                    onClick={onGoToGuestLibrary}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 rounded-xl text-xs font-bold text-gray-600 hover:text-indigo-700 transition-all"
+                  >
+                    <Users size={14} />
+                    Open Guest Library
+                    <ExternalLink size={12} className="opacity-50" />
+                  </button>
                 </section>
              </>
           )}

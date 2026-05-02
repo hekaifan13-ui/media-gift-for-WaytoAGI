@@ -4,7 +4,9 @@ export enum AppState {
   INTRO = 'INTRO',
   SELECTION = 'SELECTION',
   EDITOR = 'EDITOR',
-  PREVIEW = 'PREVIEW'
+  PREVIEW = 'PREVIEW',
+  GUEST_LIBRARY = 'GUEST_LIBRARY',
+  LOGO_LIBRARY = 'LOGO_LIBRARY'
 }
 
 export enum TemplateId {

@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Edit2, Check, X, User, Upload } from 'lucide-react';
+import React, { useState, useEffect, useRef, DragEvent } from 'react';
+import { ArrowLeft, Plus, Trash2, Edit2, Check, X, User, Upload, UserPlus } from 'lucide-react';
 import { GuestRow, getGuests, createGuest, updateGuest, deleteGuest, uploadFile } from '../services/storageService';
-import { Author } from '../types';
 
 interface GuestLibraryProps {
-  onSelectGuest: (guest: { name: string; title: string; image: string | null }) => void;
+  onBack: () => void;
+  onSelectGuest?: (guest: { name: string; title: string; image: string | null }) => void;
 }
 
-const GuestLibrary: React.FC<GuestLibraryProps> = ({ onSelectGuest }) => {
+const GuestLibrary: React.FC<GuestLibraryProps> = ({ onBack, onSelectGuest }) => {
   const [guests, setGuests] = useState<GuestRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -16,12 +16,13 @@ const GuestLibrary: React.FC<GuestLibraryProps> = ({ onSelectGuest }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
   const [newTitle, setNewTitle] = useState('');
-  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [draggingOver, setDraggingOver] = useState(false);
+  const [draggingOverId, setDraggingOverId] = useState<string | null>(null);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [avatarTargetId, setAvatarTargetId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadGuests();
-  }, []);
+  useEffect(() => { loadGuests(); }, []);
 
   const loadGuests = async () => {
     try {
@@ -58,6 +59,7 @@ const GuestLibrary: React.FC<GuestLibraryProps> = ({ onSelectGuest }) => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm('Delete this guest?')) return;
     try {
       await deleteGuest(id);
       setGuests(prev => prev.filter(g => g.id !== id));
@@ -66,9 +68,7 @@ const GuestLibrary: React.FC<GuestLibraryProps> = ({ onSelectGuest }) => {
     }
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>, guestId: string) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleAvatarUpload = async (file: File, guestId: string) => {
     try {
       setUploadingFor(guestId);
       const url = await uploadFile(file, 'avatars');
@@ -81,133 +81,216 @@ const GuestLibrary: React.FC<GuestLibraryProps> = ({ onSelectGuest }) => {
     }
   };
 
+  // Drag-and-drop: create new guest from dropped image
+  const handlePageDrop = async (e: DragEvent) => {
+    e.preventDefault();
+    setDraggingOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    
+    try {
+      setUploadingFor('new');
+      const url = await uploadFile(file, 'avatars');
+      const name = file.name.replace(/\.[^.]+$/, '').slice(0, 20) || 'New Guest';
+      const guest = await createGuest(name, '');
+      await updateGuest(guest.id, { avatar_url: url });
+      setGuests(prev => [{ ...guest, avatar_url: url }, ...prev]);
+    } catch (err) {
+      console.error('Failed to create guest from drop:', err);
+    } finally {
+      setUploadingFor(null);
+    }
+  };
+
+  // Drag-and-drop on existing guest card to replace avatar
+  const handleGuestDrop = async (e: DragEvent, guestId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggingOverId(null);
+    const file = e.dataTransfer.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    await handleAvatarUpload(file, guestId);
+  };
+
   const handleSelect = (guest: GuestRow) => {
-    onSelectGuest({
-      name: guest.name,
-      title: guest.title,
-      image: guest.avatar_url,
-    });
+    if (onSelectGuest) {
+      onSelectGuest({ name: guest.name, title: guest.title, image: guest.avatar_url });
+    }
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Guest Library</label>
-        <button
-          onClick={() => setShowAdd(!showAdd)}
-          className="text-indigo-500 hover:text-indigo-700 transition-colors"
-        >
-          <Plus size={14} />
-        </button>
-      </div>
-
-      {/* Add new guest */}
-      {showAdd && (
-        <div className="bg-gray-50 rounded-lg p-3 space-y-2 border border-gray-100">
-          <input
-            type="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="Name"
-            className="w-full bg-white border border-gray-200 rounded-md px-3 py-1.5 text-xs outline-none focus:border-indigo-400"
-          />
-          <input
-            type="text"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="Title / Description"
-            className="w-full bg-white border border-gray-200 rounded-md px-3 py-1.5 text-xs outline-none focus:border-indigo-400"
-          />
-          <div className="flex gap-2">
-            <button onClick={handleAdd} className="flex-1 bg-indigo-500 text-white rounded-md py-1.5 text-xs font-bold hover:bg-indigo-600 transition-colors">
-              Add
-            </button>
-            <button onClick={() => setShowAdd(false)} className="px-3 text-gray-400 hover:text-gray-600 text-xs">
-              Cancel
-            </button>
+    <div 
+      className="w-full h-screen bg-gradient-to-br from-gray-50 to-gray-100 overflow-auto"
+      onDragOver={(e) => { e.preventDefault(); setDraggingOver(true); }}
+      onDragLeave={(e) => { if (e.currentTarget === e.target) setDraggingOver(false); }}
+      onDrop={handlePageDrop}
+    >
+      {/* Drag overlay */}
+      {draggingOver && (
+        <div className="fixed inset-0 bg-indigo-500/10 border-4 border-dashed border-indigo-400 z-50 flex items-center justify-center pointer-events-none">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl px-8 py-6 shadow-xl">
+            <Upload size={40} className="mx-auto mb-2 text-indigo-500" />
+            <p className="text-lg font-bold text-indigo-700">Drop image to create new guest</p>
           </div>
         </div>
       )}
 
-      {/* Guest list */}
-      {loading ? (
-        <div className="text-center py-4 text-xs text-gray-400">Loading...</div>
-      ) : guests.length === 0 ? (
-        <div className="text-center py-4 text-xs text-gray-400">No saved guests</div>
-      ) : (
-        <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-          {guests.map((guest) => (
-            <div key={guest.id} className="flex items-center gap-2 bg-gray-50 hover:bg-indigo-50 rounded-lg p-2 group transition-colors">
-              {/* Avatar */}
-              <div
-                className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden shrink-0 cursor-pointer relative"
-                onClick={() => {
-                  setUploadingFor(guest.id);
-                  avatarInputRef.current?.click();
-                }}
-              >
-                {uploadingFor === guest.id ? (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-300">
-                    <div className="animate-spin w-3 h-3 border border-indigo-500 border-t-transparent rounded-full"></div>
-                  </div>
-                ) : guest.avatar_url ? (
-                  <img src={guest.avatar_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <User size={14} />
-                  </div>
-                )}
-              </div>
-
-              {/* Info */}
-              {editingId === guest.id ? (
-                <div className="flex-1 flex flex-col gap-1 min-w-0">
-                  <input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="bg-white border border-gray-200 rounded px-2 py-0.5 text-xs outline-none focus:border-indigo-400"
-                  />
-                  <input
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    className="bg-white border border-gray-200 rounded px-2 py-0.5 text-[10px] outline-none focus:border-indigo-400"
-                  />
-                  <div className="flex gap-1">
-                    <button onClick={() => handleUpdate(guest.id)} className="text-green-500 hover:text-green-700"><Check size={12} /></button>
-                    <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600"><X size={12} /></button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleSelect(guest)}>
-                  <p className="text-xs font-bold text-gray-700 truncate">{guest.name}</p>
-                  <p className="text-[10px] text-gray-400 truncate">{guest.title}</p>
-                </div>
-              )}
-
-              {/* Actions */}
-              {editingId !== guest.id && (
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                  <button onClick={() => { setEditingId(guest.id); setEditName(guest.name); setEditTitle(guest.title); }} className="text-gray-400 hover:text-indigo-500 p-0.5">
-                    <Edit2 size={11} />
-                  </button>
-                  <button onClick={() => handleDelete(guest.id)} className="text-gray-400 hover:text-red-500 p-0.5">
-                    <Trash2 size={11} />
-                  </button>
-                </div>
-              )}
+      <div className="max-w-4xl mx-auto px-8 py-10">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <button onClick={onBack} className="p-2 hover:bg-white rounded-xl transition-colors shadow-sm border border-gray-200">
+              <ArrowLeft size={20} className="text-gray-600" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-black text-gray-900">Guest Library</h1>
+              <p className="text-sm text-gray-500">Manage guests. Drag images here to add new guests.</p>
             </div>
-          ))}
+          </div>
+          <button
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-indigo-200"
+          >
+            <UserPlus size={16} />
+            Add Guest
+          </button>
         </div>
-      )}
 
-      {/* Hidden file input */}
+        {/* Add form */}
+        {showAdd && (
+          <div className="bg-white rounded-xl p-5 mb-6 border border-gray-200 shadow-sm">
+            <div className="flex gap-4 items-end">
+              <div className="flex-1 space-y-2">
+                <input
+                  autoFocus
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Guest name"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-indigo-400 focus:bg-white"
+                />
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="Title / Description"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-indigo-400 focus:bg-white"
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
+                />
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={handleAdd} className="px-5 py-2.5 bg-indigo-500 text-white rounded-lg font-bold text-sm hover:bg-indigo-600">Save</button>
+                <button onClick={() => setShowAdd(false)} className="px-4 py-2.5 text-gray-500 hover:text-gray-700 text-sm font-medium">Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Guest Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20 text-gray-400">
+            <div className="animate-spin w-6 h-6 border-2 border-indigo-400 border-t-transparent rounded-full mr-3"></div>
+            Loading...
+          </div>
+        ) : guests.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400 border-2 border-dashed border-gray-200 rounded-2xl">
+            <User size={48} className="mb-3 opacity-30" />
+            <p className="text-lg font-medium mb-1">No guests yet</p>
+            <p className="text-sm">Drag images here or click "Add Guest" to start</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {guests.map((guest) => (
+              <div
+                key={guest.id}
+                className={`bg-white rounded-2xl border overflow-hidden shadow-sm hover:shadow-lg transition-all group ${draggingOverId === guest.id ? 'border-indigo-400 ring-2 ring-indigo-200 scale-[1.02]' : 'border-gray-200 hover:border-indigo-200'}`}
+                onDragOver={(e) => { e.preventDefault(); setDraggingOverId(guest.id); }}
+                onDragLeave={() => setDraggingOverId(null)}
+                onDrop={(e) => handleGuestDrop(e, guest.id)}
+              >
+                {/* Avatar */}
+                <div
+                  className="aspect-square bg-gray-100 relative overflow-hidden cursor-pointer"
+                  onClick={() => { setAvatarTargetId(guest.id); avatarInputRef.current?.click(); }}
+                >
+                  {uploadingFor === guest.id ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full"></div>
+                    </div>
+                  ) : guest.avatar_url ? (
+                    <img src={guest.avatar_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-300">
+                      <User size={48} />
+                      <span className="text-[10px] mt-1 font-medium">Drop or click</span>
+                    </div>
+                  )}
+                  {/* Drag hint overlay */}
+                  {draggingOverId === guest.id && (
+                    <div className="absolute inset-0 bg-indigo-500/20 flex items-center justify-center">
+                      <Upload size={32} className="text-indigo-600" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="p-4">
+                  {editingId === guest.id ? (
+                    <div className="space-y-2">
+                      <input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-1.5 text-sm outline-none focus:border-indigo-400"
+                      />
+                      <input
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-1.5 text-xs outline-none focus:border-indigo-400"
+                      />
+                      <div className="flex gap-2">
+                        <button onClick={() => handleUpdate(guest.id)} className="text-green-600 hover:text-green-700"><Check size={16} /></button>
+                        <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="font-bold text-gray-900 text-sm truncate">{guest.name || 'Unnamed'}</h3>
+                      <p className="text-xs text-gray-500 truncate mt-0.5">{guest.title || 'No title'}</p>
+                      <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-gray-100">
+                        {onSelectGuest && (
+                          <button
+                            onClick={() => handleSelect(guest)}
+                            className="flex-1 text-[10px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1.5 rounded-lg transition-colors"
+                          >
+                            Use in Project
+                          </button>
+                        )}
+                        <button onClick={() => { setEditingId(guest.id); setEditName(guest.name); setEditTitle(guest.title); }} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-indigo-600 transition-colors">
+                          <Edit2 size={13} />
+                        </button>
+                        <button onClick={() => handleDelete(guest.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Hidden file input for avatar upload */}
       <input
         ref={avatarInputRef}
         type="file"
         accept="image/*"
         className="hidden"
         onChange={(e) => {
-          if (uploadingFor) handleAvatarUpload(e, uploadingFor);
+          const file = e.target.files?.[0];
+          if (file && avatarTargetId) handleAvatarUpload(file, avatarTargetId);
+          if (avatarInputRef.current) avatarInputRef.current.value = '';
         }}
       />
     </div>
