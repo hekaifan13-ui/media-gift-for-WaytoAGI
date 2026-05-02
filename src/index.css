@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;600&family=Special+Elite&display=swap');
-
 body {
   background-color: #e5e5f7;
   background-image:
@@ -14,6 +12,7 @@ body {
   background-size: 50px 50px, 50px 50px, 10px 10px, 10px 10px;
   background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
   overflow-x: hidden;
+  font-family: "Montserrat", sans-serif;
 }
 
 .preserve-3d {

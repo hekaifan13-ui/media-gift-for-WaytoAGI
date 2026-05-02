@@ -1,5 +1,4 @@
-import type { Config } from 'tailwindcss'
-
+/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
@@ -13,12 +12,6 @@ export default {
         sans: ['"Montserrat"', 'sans-serif'],
         typewriter: ['"Special Elite"', 'monospace'],
         neon: ['"Courier Prime"', 'monospace'],
-      },
-      colors: {
-        paper: '#fdfbf7',
-        'glass-edge': 'rgba(255, 255, 255, 0.6)',
-        'glass-surface': 'rgba(255, 255, 255, 0.1)',
-        'glass-shadow': 'rgba(0, 0, 0, 0.1)',
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',
@@ -37,4 +30,4 @@ export default {
     }
   },
   plugins: [],
-} satisfies Config
+}

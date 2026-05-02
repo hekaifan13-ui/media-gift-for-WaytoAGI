@@ -1,5 +1,5 @@
 
-import React, { useRef, useState, DragEvent, ClipboardEvent, useEffect } from 'react';
+import React, { useRef, useState, DragEvent, ClipboardEvent } from 'react';
 import { PostcardData, TemplateId, Author } from '../types';
 import { getTemplateComponent, LIVE_BACKGROUNDS } from './CardTemplates';
 import { 
