@@ -40,7 +40,7 @@ export const INITIAL_DATA: PostcardData = {
   authors: [],
   authorsLayout: { x: 0, y: 0, scale: 1 },
   authorsTextColor: "#ffffff",
-  logos: ["/svg/灰底黑色2.svg"],
+  logos: ["https://grazia-prod.oss-ap-southeast-1.aliyuncs.com/resources/uid_100037804/1ca2ce55-b7b3-4d.png"],
   logoSeparatorColor: "#ffffff",
   logoStyle: "black-text",
   liveTopic: "",

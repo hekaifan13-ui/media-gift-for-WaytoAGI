@@ -418,7 +418,9 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                         onClick={() => {
                           const newStyle = data.logoStyle === 'black-text' ? 'white-text' : 'black-text';
                           updateData('logoStyle', newStyle);
-                          updateData('logos', [newStyle === 'black-text' ? '/svg/灰底黑色2.svg' : '/svg/灰底白字1.svg']);
+                          updateData('logos', [newStyle === 'black-text' 
+                            ? 'https://grazia-prod.oss-ap-southeast-1.aliyuncs.com/resources/uid_100037804/1ca2ce55-b7b3-4d.png' 
+                            : 'https://grazia-prod.oss-ap-southeast-1.aliyuncs.com/resources/uid_100037804/50dadf1f-9b95-48.png']);
                         }}
                         className="flex items-center gap-1.5 text-[10px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-full transition-all font-bold"
                       >
