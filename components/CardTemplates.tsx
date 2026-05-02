@@ -3,6 +3,23 @@ import React, { forwardRef, useState } from 'react';
 import { PostcardData, TemplateId } from '../types';
 import { MapPin, Stamp, Globe, Heart, Feather, Film, Leaf, Zap, Minus, FileCode, GitBranch, Search, Settings, MoreHorizontal, X, Code, ChevronRight, ChevronDown, Layout, QrCode, User, Move, Image as ImageIcon } from 'lucide-react';
 
+// Grain noise SVG data URI for granular texture overlay
+const GRAIN_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`;
+
+// Reusable grain overlay component
+const GrainOverlay = ({ opacity = 0.08 }: { opacity?: number }) => (
+  <div
+    className="absolute inset-0 pointer-events-none z-[1]"
+    style={{
+      backgroundImage: GRAIN_SVG,
+      backgroundRepeat: 'repeat',
+      backgroundSize: '300px 300px',
+      opacity,
+      mixBlendMode: 'overlay',
+    }}
+  />
+);
+
 interface TemplateProps {
   data: PostcardData;
   scale?: number;
@@ -205,7 +222,25 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
 
        {/* BOTTOM SECTION: Footer */}
        {!isFullPortrait && (
-         <div className="flex-1 bg-white px-12 py-6 flex items-center justify-between border-t border-gray-100 relative z-10">
+         <div className="flex-1 px-12 py-6 flex items-center justify-between border-t border-gray-100 relative z-10 overflow-hidden">
+            {/* Gradient Background */}
+            <div
+              className="absolute inset-0 -z-10"
+              style={{
+                background: 'linear-gradient(135deg, #f0fdf4 0%, #e0f7fa 35%, #eff6ff 65%, #fdf4ff 100%)',
+              }}
+            />
+            {/* Radial glow accents */}
+            <div
+              className="absolute -top-10 -left-10 w-64 h-64 rounded-full -z-10 opacity-40"
+              style={{ background: 'radial-gradient(circle, #67e8f9 0%, transparent 70%)' }}
+            />
+            <div
+              className="absolute -bottom-10 -right-10 w-56 h-56 rounded-full -z-10 opacity-30"
+              style={{ background: 'radial-gradient(circle, #c4b5fd 0%, transparent 70%)' }}
+            />
+            {/* Grain overlay */}
+            <GrainOverlay opacity={0.07} />
             
             {/* Left: Text Description */}
             <div className="flex-1 pr-10 flex flex-col justify-center items-start h-full min-w-0">
@@ -387,8 +422,38 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
       style={{ 
         transform: `scale(${scale})`, 
         transformOrigin: 'top left',
+        background: isDark
+          ? 'linear-gradient(135deg, #0d0d1a 0%, #1a0a2e 30%, #0a1628 60%, #1a1035 100%)'
+          : 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 30%, #e0f2fe 65%, #f0fdf4 100%)',
       }}
     >
+      {/* Radial glow accents for depth */}
+      <div
+        className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none"
+        style={{
+          background: isDark
+            ? 'radial-gradient(ellipse at top left, rgba(99,102,241,0.25) 0%, transparent 65%)'
+            : 'radial-gradient(ellipse at top left, rgba(167,139,250,0.3) 0%, transparent 65%)',
+        }}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-[500px] h-[500px] pointer-events-none"
+        style={{
+          background: isDark
+            ? 'radial-gradient(ellipse at bottom right, rgba(56,189,248,0.15) 0%, transparent 65%)'
+            : 'radial-gradient(ellipse at bottom right, rgba(125,211,252,0.3) 0%, transparent 65%)',
+        }}
+      />
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] pointer-events-none"
+        style={{
+          background: isDark
+            ? 'radial-gradient(ellipse, rgba(139,92,246,0.08) 0%, transparent 70%)'
+            : 'radial-gradient(ellipse, rgba(196,181,253,0.2) 0%, transparent 70%)',
+        }}
+      />
+      {/* Grain overlay */}
+      <GrainOverlay opacity={isDark ? 0.12 : 0.07} />
       {/* Top Header Bar */}
       <div className="px-10 py-6 flex items-center justify-between z-20">
         <div className={`flex items-center gap-6 rounded-3xl px-8 py-4 shadow-sm transition-colors duration-500 ${isDark ? 'bg-indigo-900/50 border border-indigo-500/30' : 'bg-[#c7d2fe]'}`}>
@@ -417,11 +482,13 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
         <div 
           className="aspect-[16/9] h-full border-[6px] border-[#6366f1] rounded-[32px] bg-transparent relative shrink-0 z-10"
         >
-          {/* The Hole Trick: Overlaps the border slightly using box-shadow for reliability */}
+          {/* Subtle inner glow for the frame */}
           <div 
-            className="absolute inset-[-2px] -z-10 rounded-[28px] pointer-events-none"
+            className="absolute inset-0 rounded-[28px] pointer-events-none"
             style={{ 
-              boxShadow: `0 0 0 2000px ${isDark ? '#1a1a1a' : '#f8f9fa'}`,
+              boxShadow: isDark
+                ? 'inset 0 0 40px rgba(99,102,241,0.12), 0 0 60px rgba(99,102,241,0.15)'
+                : 'inset 0 0 40px rgba(99,102,241,0.07), 0 0 40px rgba(99,102,241,0.1)',
             }}
           ></div>
 
