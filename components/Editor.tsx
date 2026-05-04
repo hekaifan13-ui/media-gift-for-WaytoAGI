@@ -13,7 +13,7 @@ import ImageCropper from './ImageCropper';
 import ImageGenModal from './ImageGenModal';
 import { motion, AnimatePresence } from 'motion/react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { createProject, updateProject } from '../services/storageService';
+import { createProject, updateProject, createGuest, uploadBase64 } from '../services/storageService';
 
 // Need to declare global htmlToImage from the script tag
 declare const htmlToImage: any;
@@ -49,6 +49,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(projectTitle);
+  const [savingGuest, setSavingGuest] = useState<Record<string, 'saving' | 'saved'>>({});
   
   const cardRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -198,6 +199,27 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
         newAuthors[index] = { ...newAuthors[index], [field]: value };
         updateData('authors', newAuthors);
      }
+  };
+
+  const saveAuthorToLibrary = async (author: Author) => {
+    if (!author.name.trim()) return;
+    setSavingGuest(prev => ({ ...prev, [author.id]: 'saving' }));
+    try {
+      let avatarUrl: string | undefined;
+      if (author.image) {
+        if (author.image.startsWith('data:')) {
+          avatarUrl = await uploadBase64(author.image, 'avatars');
+        } else {
+          avatarUrl = author.image;
+        }
+      }
+      await createGuest(author.name, author.title || '', avatarUrl);
+      setSavingGuest(prev => ({ ...prev, [author.id]: 'saved' }));
+      setTimeout(() => setSavingGuest(prev => { const n = { ...prev }; delete n[author.id]; return n; }), 2000);
+    } catch (err) {
+      console.error('Failed to save guest:', err);
+      setSavingGuest(prev => { const n = { ...prev }; delete n[author.id]; return n; });
+    }
   };
 
   const handleDownload = async () => {
@@ -677,7 +699,17 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                                   <input type="text" value={author.name} onChange={(e) => updateAuthorField(idx, 'name', e.target.value)} placeholder="Name" className="w-full text-xs font-bold bg-transparent border-b border-transparent focus:border-gray-300 outline-none placeholder:text-gray-300" />
                                   <textarea value={author.title} onChange={(e) => updateAuthorField(idx, 'title', e.target.value)} placeholder="Title / Role" rows={2} className="w-full text-[10px] text-gray-500 bg-transparent border-b border-transparent focus:border-gray-300 outline-none placeholder:text-gray-300 tracking-wide resize-y min-h-[40px]" />
                                </div>
-                               <button onClick={() => removeAuthor(idx)} className="text-gray-300 hover:text-red-400 transition-colors p-1"><Trash2 size={14} /></button>
+                               <div className="flex flex-col gap-1">
+                                  <button
+                                    onClick={() => saveAuthorToLibrary(author)}
+                                    disabled={!author.name.trim() || savingGuest[author.id] === 'saving'}
+                                    className={`p-1 rounded transition-colors ${savingGuest[author.id] === 'saved' ? 'text-green-500' : 'text-gray-300 hover:text-indigo-500'} disabled:opacity-40`}
+                                    title="Save to Guest Library"
+                                  >
+                                    {savingGuest[author.id] === 'saving' ? <RefreshCw size={14} className="animate-spin" /> : savingGuest[author.id] === 'saved' ? <Check size={14} /> : <Save size={14} />}
+                                  </button>
+                                  <button onClick={() => removeAuthor(idx)} className="text-gray-300 hover:text-red-400 transition-colors p-1"><Trash2 size={14} /></button>
+                               </div>
                             </div>
                          ))}
                       </div>
