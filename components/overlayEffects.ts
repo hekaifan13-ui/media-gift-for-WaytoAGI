@@ -12,7 +12,8 @@ export interface OverlayEffect {
 
 // --- SVG patterns as data URIs ---
 
-const STAMP_CROSS = `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`;
+// "WaytoAGI" repeating text pattern — two staggered rows
+const STAMP_TEXT = `url("data:image/svg+xml,%3Csvg width='200' height='50' viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='5' y='18' font-family='Arial,sans-serif' font-size='14' font-weight='bold' fill='%239C92AC' fill-opacity='0.12' letter-spacing='4'%3EWaytoAGI%3C/text%3E%3Ctext x='105' y='42' font-family='Arial,sans-serif' font-size='14' font-weight='bold' fill='%239C92AC' fill-opacity='0.12' letter-spacing='4'%3EWaytoAGI%3C/text%3E%3C/svg%3E")`;
 
 const STAMP_DIAMOND = `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.12'%3E%3Cpath d='M20 0L40 20 20 40 0 20z' fill-rule='evenodd'/%3E%3C/g%3E%3C/svg%3E")`;
 
@@ -27,38 +28,19 @@ export const OVERLAY_EFFECTS: OverlayEffect[] = [
     style: {},
   },
 
-  // ── Holographic / Flash Card ──
+  // ── Text Pattern ──
   {
-    id: 'holographic',
-    label: '闪卡',
-    // Layer 1: rainbow color bands
+    id: 'stamp-text',
+    label: 'WaytoAGI',
     style: {
-      background: 'linear-gradient(135deg, rgba(255,0,128,0.25) 0%, rgba(0,255,255,0.2) 20%, rgba(255,255,0,0.2) 40%, rgba(128,0,255,0.22) 60%, rgba(0,255,128,0.2) 80%, rgba(255,0,128,0.18) 100%)',
-      mixBlendMode: 'color-dodge' as const,
-      opacity: 0.7,
-    },
-    // Layer 2: fine diagonal stripes (shimmer lines)
-    style2: {
-      background: 'repeating-linear-gradient(135deg, transparent 0px, transparent 3px, rgba(255,255,255,0.15) 3px, rgba(255,255,255,0.15) 5px)',
-      mixBlendMode: 'overlay' as const,
-    },
-    // Layer 3: specular highlight spots
-    style3: {
-      background: 'radial-gradient(ellipse at 25% 25%, rgba(255,255,255,0.25) 0%, transparent 40%), radial-gradient(ellipse at 75% 60%, rgba(200,220,255,0.2) 0%, transparent 40%)',
-      mixBlendMode: 'screen' as const,
+      backgroundImage: STAMP_TEXT,
+      backgroundRepeat: 'repeat',
+      backgroundSize: '200px 50px',
+      mixBlendMode: 'multiply' as const,
     },
   },
 
   // ── Stamp / Print Patterns ──
-  {
-    id: 'stamp-cross',
-    label: '十字印花',
-    style: {
-      backgroundImage: STAMP_CROSS,
-      backgroundRepeat: 'repeat',
-      mixBlendMode: 'multiply' as const,
-    },
-  },
   {
     id: 'stamp-diamond',
     label: '菱形印花',
