@@ -50,6 +50,7 @@ export interface PostcardData {
   theme?: 'light' | 'dark';
   bgStyle?: string;        // Livestream full-card background preset key
   footerBgStyle?: string;  // Modern footer background preset key
+  overlayEffect?: string;  // Overlay effect id (holographic, stamp, foil, etc.)
 }
 
 export interface TemplateConfig {

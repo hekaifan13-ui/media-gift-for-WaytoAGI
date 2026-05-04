@@ -3,6 +3,7 @@ import React, { forwardRef, useState } from 'react';
 import { PostcardData, TemplateId } from '../types';
 import { Feather, FileCode, GitBranch, Search, Settings, Layout, QrCode, User, Image as ImageIcon } from 'lucide-react';
 import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS } from './bgPresets';
+import { OVERLAY_EFFECTS } from './overlayEffects';
 
 // Grain noise SVG data URI for granular texture overlay
 const GRAIN_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`;
@@ -20,6 +21,19 @@ const GrainOverlay = ({ opacity = 0.08 }: { opacity?: number }) => (
     }}
   />
 );
+
+// Reusable effect overlay (holographic, stamp, foil)
+const EffectOverlay = ({ effectId }: { effectId?: string }) => {
+  if (!effectId || effectId === 'none') return null;
+  const effect = OVERLAY_EFFECTS.find(e => e.id === effectId);
+  if (!effect) return null;
+  return (
+    <>
+      <div className="absolute inset-0 pointer-events-none z-[2]" style={effect.style} />
+      {effect.style2 && <div className="absolute inset-0 pointer-events-none z-[2]" style={effect.style2} />}
+    </>
+  );
+};
 
 interface TemplateProps {
   data: PostcardData;
@@ -269,6 +283,9 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
             {/* Grain overlay */}
             {footerPreset.grainOpacity > 0 && <GrainOverlay opacity={footerPreset.grainOpacity} />}
             
+            {/* Effect overlay (holographic, foil, stamp) */}
+            <EffectOverlay effectId={data.overlayEffect} />
+            
             {/* Left: Text Description */}
             <div className="flex-1 pr-10 flex flex-col justify-center items-start h-full min-w-0 relative z-10">
                <p className="text-[25px] font-light text-gray-500 mb-3 flex items-center gap-5">
@@ -486,6 +503,9 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
 
       {/* Grain overlay */}
       {bgPreset.grainOpacity > 0 && <GrainOverlay opacity={bgPreset.grainOpacity} />}
+
+      {/* Effect overlay (holographic, foil, stamp) */}
+      <EffectOverlay effectId={data.overlayEffect} />
 
       {/* Top Header Bar */}
       <div className="px-10 py-6 flex items-center justify-between z-20">

@@ -3,6 +3,7 @@ import React, { useRef, useState, DragEvent, ClipboardEvent, useEffect } from 'r
 import { PostcardData, TemplateId, Author, ProjectAllData } from '../types';
 import { getTemplateComponent } from './CardTemplates';
 import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS } from './bgPresets';
+import { OVERLAY_EFFECTS } from './overlayEffects';
 import { 
   Image as ImageIcon, Download, ArrowLeft, Wand2, RefreshCw, Save, ExternalLink,
   Calendar, MapPin, User, AlignLeft, UploadCloud, QrCode, Type, Sparkles, Plus, Trash2, Edit2, Hexagon, Layout,
@@ -532,6 +533,26 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                   ))}
                 </div>
               </div>
+
+              {/* Overlay Effect Picker (Card 3) */}
+              <div className="space-y-2 pt-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Overlay Effect</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {OVERLAY_EFFECTS.map((effect) => (
+                    <button
+                      key={effect.id}
+                      onClick={() => updateData('overlayEffect', effect.id)}
+                      className={`py-1.5 px-2 rounded-lg border text-[10px] font-bold transition-all truncate ${
+                        (data.overlayEffect || 'none') === effect.id 
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm' 
+                          : 'border-gray-200 text-gray-500 hover:border-indigo-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      {effect.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </section>
           )}
 
@@ -567,6 +588,28 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                              className={`h-7 rounded-lg border-2 transition-all hover:scale-110 ${(data.footerBgStyle || 'mint') === key ? 'border-cyan-500 scale-110 shadow-sm ring-1 ring-cyan-300' : 'border-transparent hover:border-gray-200'}`}
                              style={{ background: preset.bg }}
                            />
+                         ))}
+                       </div>
+                     </div>
+                   )}
+
+                   {/* Overlay Effect Picker (Card 1) */}
+                   {data.templateId === TemplateId.MODERN && data.modernLayout !== 'portrait-full' && (
+                     <div className="space-y-2 mb-4">
+                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Overlay Effect</label>
+                       <div className="grid grid-cols-3 gap-1.5">
+                         {OVERLAY_EFFECTS.map((effect) => (
+                           <button
+                             key={effect.id}
+                             onClick={() => updateData('overlayEffect', effect.id)}
+                             className={`py-1.5 px-2 rounded-lg border text-[10px] font-bold transition-all truncate ${
+                               (data.overlayEffect || 'none') === effect.id 
+                                 ? 'border-cyan-500 bg-cyan-50 text-cyan-700 shadow-sm' 
+                                 : 'border-gray-200 text-gray-500 hover:border-cyan-200 hover:bg-gray-50'
+                             }`}
+                           >
+                             {effect.label}
+                           </button>
                          ))}
                        </div>
                      </div>
