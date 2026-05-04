@@ -110,7 +110,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
                   <div className="p-5">
                     <h3 className="font-bold text-gray-900 truncate mb-1">{project.title}</h3>
                     <div className="flex items-center gap-3 text-xs text-gray-400">
-                      <span className="px-2 py-0.5 bg-gray-100 rounded-md font-medium uppercase">{project.template_id}</span>
+                      <span className="px-2 py-0.5 bg-gray-100 rounded-md font-medium uppercase">3 Templates</span>
                       <span className="flex items-center gap-1">
                         <Clock size={12} />
                         {new Date(project.updated_at).toLocaleDateString()}

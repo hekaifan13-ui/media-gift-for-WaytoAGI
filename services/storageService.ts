@@ -1,5 +1,6 @@
 import { supabase } from '@/src/integrations/supabase/client';
-import { PostcardData } from '../types';
+import { PostcardData, ProjectAllData, TemplateId } from '../types';
+import { INITIAL_PROJECT_DATA } from '../constants';
 
 // ─── File Upload ───────────────────────────────────────────────
 export async function uploadFile(file: File, folder: string): Promise<string> {
@@ -34,10 +35,26 @@ export interface ProjectRow {
   id: string;
   title: string;
   template_id: string;
-  data: PostcardData;
+  data: ProjectAllData;
   thumbnail: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** Migrate old single-PostcardData format to ProjectAllData */
+function migrateProjectData(raw: any): ProjectAllData {
+  // If the data already has all three template keys, it's the new format
+  if (raw && raw[TemplateId.MODERN] && raw[TemplateId.CODE] && raw[TemplateId.LIVESTREAM]) {
+    return raw as ProjectAllData;
+  }
+  // Old format: raw is a single PostcardData with a templateId field
+  if (raw && raw.templateId) {
+    const oldData = raw as PostcardData;
+    const migrated = { ...INITIAL_PROJECT_DATA };
+    migrated[oldData.templateId as TemplateId] = oldData;
+    return migrated;
+  }
+  return { ...INITIAL_PROJECT_DATA };
 }
 
 export async function getProjects(): Promise<ProjectRow[]> {
@@ -46,7 +63,10 @@ export async function getProjects(): Promise<ProjectRow[]> {
     .select('*')
     .order('updated_at', { ascending: false });
   if (error) throw error;
-  return (data || []) as unknown as ProjectRow[];
+  return ((data || []) as any[]).map(row => ({
+    ...row,
+    data: migrateProjectData(row.data),
+  })) as ProjectRow[];
 }
 
 export async function getProject(id: string): Promise<ProjectRow | null> {
@@ -56,20 +76,21 @@ export async function getProject(id: string): Promise<ProjectRow | null> {
     .eq('id', id)
     .maybeSingle();
   if (error) throw error;
-  return data as unknown as ProjectRow | null;
+  if (!data) return null;
+  return { ...(data as any), data: migrateProjectData((data as any).data) } as ProjectRow;
 }
 
-export async function createProject(title: string, templateId: string, postcardData: PostcardData): Promise<ProjectRow> {
+export async function createProject(title: string, projectData: ProjectAllData): Promise<ProjectRow> {
   const { data, error } = await supabase
     .from('projects')
-    .insert({ title, template_id: templateId, data: postcardData as any })
+    .insert({ title, template_id: 'ALL', data: projectData as any })
     .select()
     .single();
   if (error) throw error;
-  return data as unknown as ProjectRow;
+  return { ...(data as any), data: migrateProjectData((data as any).data) } as ProjectRow;
 }
 
-export async function updateProject(id: string, updates: Partial<{ title: string; data: PostcardData; thumbnail: string }>): Promise<void> {
+export async function updateProject(id: string, updates: Partial<{ title: string; data: ProjectAllData; thumbnail: string }>): Promise<void> {
   const { error } = await supabase
     .from('projects')
     .update(updates as any)

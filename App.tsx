@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { AppState, TemplateId, PostcardData, Author } from './types';
-import { INITIAL_DATA } from './constants';
+import { AppState, TemplateId, PostcardData, Author, ProjectAllData } from './types';
+import { INITIAL_PROJECT_DATA } from './constants';
 import IntroBox from './components/IntroBox';
 import Editor from './components/Editor';
 import ProjectList from './components/ProjectList';
@@ -10,26 +10,31 @@ import { ProjectRow } from './services/storageService';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.PROJECTS);
-  const [data, setData] = useState<PostcardData>(INITIAL_DATA);
+  const [projectData, setProjectData] = useState<ProjectAllData>({ ...INITIAL_PROJECT_DATA });
+  const [activeTemplate, setActiveTemplate] = useState<TemplateId>(TemplateId.LIVESTREAM);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [currentProjectTitle, setCurrentProjectTitle] = useState<string>('Untitled Project');
 
+  // Current template's data (derived)
+  const currentData = projectData[activeTemplate];
+
   // ── Project List ──
   const handleNewProject = () => {
-    setData(INITIAL_DATA);
+    setProjectData({ ...INITIAL_PROJECT_DATA });
     setCurrentProjectId(null);
     setCurrentProjectTitle('Untitled Project');
     setAppState(AppState.INTRO);
   };
 
   const handleLoadProject = (project: ProjectRow) => {
-    setData(project.data);
+    setProjectData(project.data);
     setCurrentProjectId(project.id);
     setCurrentProjectTitle(project.title);
-    setAppState(AppState.EDITOR);
+    // Go directly to selection (acrylic box, already open)
+    setAppState(AppState.SELECTION);
   };
 
-  // ── Template Selection ──
+  // ── Template Selection (Acrylic Box) ──
   const handleBoxOpen = () => {
     setAppState(AppState.SELECTION);
   };
@@ -39,17 +44,21 @@ const App: React.FC = () => {
   };
 
   const handleSelectTemplate = (id: TemplateId) => {
-    setData(prev => ({ ...prev, templateId: id }));
+    setActiveTemplate(id);
     setAppState(AppState.EDITOR);
   };
 
   // ── Editor ──
   const updateData = (key: keyof PostcardData, value: any) => {
-    setData(prev => ({ ...prev, [key]: value }));
+    setProjectData(prev => ({
+      ...prev,
+      [activeTemplate]: { ...prev[activeTemplate], [key]: value },
+    }));
   };
 
-  const handleBack = () => {
-    setAppState(AppState.PROJECTS);
+  const handleBackToSelection = () => {
+    // Back from editor → acrylic box (same project)
+    setAppState(AppState.SELECTION);
   };
 
   // ── Library Navigation ──
@@ -72,12 +81,24 @@ const App: React.FC = () => {
       title: guest.title,
       image: guest.image,
     };
-    setData(prev => ({ ...prev, authors: [...(prev.authors || []), newAuthor] }));
+    setProjectData(prev => ({
+      ...prev,
+      [activeTemplate]: {
+        ...prev[activeTemplate],
+        authors: [...(prev[activeTemplate].authors || []), newAuthor],
+      },
+    }));
     setAppState(AppState.EDITOR);
   };
 
   const handleSelectLogoFromLibrary = (url: string) => {
-    setData(prev => ({ ...prev, logos: [...(prev.logos || []), url] }));
+    setProjectData(prev => ({
+      ...prev,
+      [activeTemplate]: {
+        ...prev[activeTemplate],
+        logos: [...(prev[activeTemplate].logos || []), url],
+      },
+    }));
     setAppState(AppState.EDITOR);
   };
 
@@ -107,11 +128,12 @@ const App: React.FC = () => {
         />
       ) : (
         <Editor 
-          data={data} 
+          data={currentData} 
           updateData={updateData} 
-          onBack={handleBack}
+          onBack={handleBackToSelection}
           projectId={currentProjectId}
           projectTitle={currentProjectTitle}
+          projectData={projectData}
           onProjectSaved={(id, title) => {
             setCurrentProjectId(id);
             setCurrentProjectTitle(title);

@@ -1,5 +1,5 @@
 
-import { TemplateId, TemplateConfig, PostcardData } from './types';
+import { TemplateId, TemplateConfig, PostcardData, ProjectAllData } from './types';
 
 export const TEMPLATES: TemplateConfig[] = [
   {
@@ -22,9 +22,7 @@ export const TEMPLATES: TemplateConfig[] = [
   }
 ];
 
-export const INITIAL_DATA: PostcardData = {
-  templateId: TemplateId.LIVESTREAM,
-  modernLayout: 'standard',
+const SHARED_DEFAULTS: Partial<PostcardData> = {
   image: null,
   recipient: "",
   message: "",
@@ -43,7 +41,27 @@ export const INITIAL_DATA: PostcardData = {
   logos: ["https://grazia-prod.oss-ap-southeast-1.aliyuncs.com/resources/uid_100037804/1ca2ce55-b7b3-4d.png"],
   logoSeparatorColor: "#ffffff",
   logoStyle: "black-text",
-  liveTopic: "",
-  bgStyle: "nebula-light",
-  footerBgStyle: "mint",
 };
+
+export const INITIAL_PROJECT_DATA: ProjectAllData = {
+  [TemplateId.MODERN]: {
+    ...SHARED_DEFAULTS,
+    templateId: TemplateId.MODERN,
+    modernLayout: 'standard',
+    footerBgStyle: "mint",
+  } as PostcardData,
+  [TemplateId.CODE]: {
+    ...SHARED_DEFAULTS,
+    templateId: TemplateId.CODE,
+  } as PostcardData,
+  [TemplateId.LIVESTREAM]: {
+    ...SHARED_DEFAULTS,
+    templateId: TemplateId.LIVESTREAM,
+    liveTopic: "",
+    bgStyle: "nebula-light",
+  } as PostcardData,
+};
+
+// Keep for backward compatibility
+export const INITIAL_DATA: PostcardData = INITIAL_PROJECT_DATA[TemplateId.LIVESTREAM];
+

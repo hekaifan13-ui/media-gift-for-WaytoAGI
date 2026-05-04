@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, DragEvent, ClipboardEvent, useEffect } from 'react';
-import { PostcardData, TemplateId, Author } from '../types';
+import { PostcardData, TemplateId, Author, ProjectAllData } from '../types';
 import { getTemplateComponent } from './CardTemplates';
 import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS } from './bgPresets';
 import { 
@@ -24,6 +24,7 @@ interface EditorProps {
   onBack: () => void;
   projectId: string | null;
   projectTitle: string;
+  projectData: ProjectAllData;
   onProjectSaved: (id: string, title: string) => void;
   onGoToGuestLibrary: () => void;
   onGoToLogoLibrary: () => void;
@@ -36,7 +37,7 @@ interface CroppingState {
   aspectRatio: number;
 }
 
-const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, projectTitle, onProjectSaved, onGoToGuestLibrary, onGoToLogoLibrary }) => {
+const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, projectTitle, projectData, onProjectSaved, onGoToGuestLibrary, onGoToLogoLibrary }) => {
   const [showAI, setShowAI] = useState(false);
   const [showImageGen, setShowImageGen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -260,10 +261,10 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
     setIsSaving(true);
     try {
       if (projectId) {
-        await updateProject(projectId, { title: titleInput, data });
+        await updateProject(projectId, { title: titleInput, data: projectData });
         onProjectSaved(projectId, titleInput);
       } else {
-        const project = await createProject(titleInput, data.templateId, data);
+        const project = await createProject(titleInput, projectData);
         onProjectSaved(project.id, titleInput);
       }
       setSaveStatus('saved');

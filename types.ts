@@ -58,3 +58,7 @@ export interface TemplateConfig {
   description: string;
   previewColor: string;
 }
+
+// One project stores data for ALL three templates
+export type ProjectAllData = Record<TemplateId, PostcardData>;
+
