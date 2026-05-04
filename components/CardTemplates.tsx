@@ -1,5 +1,5 @@
 
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef, useState, useMemo } from 'react';
 import { PostcardData, TemplateId } from '../types';
 import { Feather, FileCode, GitBranch, Search, Settings, Layout, QrCode, User, Image as ImageIcon } from 'lucide-react';
 import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS } from './bgPresets';
@@ -22,11 +22,43 @@ const GrainOverlay = ({ opacity = 0.08 }: { opacity?: number }) => (
   />
 );
 
-// Reusable effect overlay (holographic, stamp, foil)
-const EffectOverlay = ({ effectId }: { effectId?: string }) => {
+// Build an SVG data URI for an emoji tiled pattern
+function buildEmojiPatternUrl(emoji: string): string {
+  const encoded = encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'>` +
+    `<text x='10' y='28' font-size='22' opacity='0.18'>${emoji}</text>` +
+    `<text x='50' y='62' font-size='22' opacity='0.18'>${emoji}</text>` +
+    `</svg>`
+  );
+  return `url("data:image/svg+xml,${encoded}")`;
+}
+
+// Reusable effect overlay (patterns, emoji, etc.)
+const EffectOverlay = ({ effectId, emoji }: { effectId?: string; emoji?: string }) => {
   if (!effectId || effectId === 'none') return null;
   const effect = OVERLAY_EFFECTS.find(e => e.id === effectId);
   if (!effect) return null;
+
+  // Dynamic emoji pattern
+  const emojiUrl = useMemo(() => {
+    if (effect.isDynamicEmoji && emoji) return buildEmojiPatternUrl(emoji);
+    return null;
+  }, [effect.isDynamicEmoji, emoji]);
+
+  if (effect.isDynamicEmoji) {
+    if (!emoji) return null;
+    return (
+      <div
+        className="absolute inset-0 pointer-events-none z-[2]"
+        style={{
+          backgroundImage: emojiUrl!,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '80px 80px',
+        }}
+      />
+    );
+  }
+
   return (
     <>
       <div className="absolute inset-0 pointer-events-none z-[2]" style={effect.style} />
@@ -285,7 +317,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
             {footerPreset.grainOpacity > 0 && <GrainOverlay opacity={footerPreset.grainOpacity} />}
             
             {/* Effect overlay (holographic, foil, stamp) */}
-            <EffectOverlay effectId={data.overlayEffect} />
+            <EffectOverlay effectId={data.overlayEffect} emoji={data.emojiPattern} />
             
             {/* Left: Text Description */}
             <div className="flex-1 pr-10 flex flex-col justify-center items-start h-full min-w-0 relative z-10">
@@ -506,7 +538,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
       {bgPreset.grainOpacity > 0 && <GrainOverlay opacity={bgPreset.grainOpacity} />}
 
       {/* Effect overlay (holographic, foil, stamp) */}
-      <EffectOverlay effectId={data.overlayEffect} />
+      <EffectOverlay effectId={data.overlayEffect} emoji={data.emojiPattern} />
 
       {/* Top Header Bar */}
       <div className="px-10 py-6 flex items-center justify-between z-20">

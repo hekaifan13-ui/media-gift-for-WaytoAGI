@@ -8,6 +8,8 @@ export interface OverlayEffect {
   style2?: CSSProperties;
   style3?: CSSProperties;
   className?: string;
+  /** If true, this effect uses a dynamic emoji pattern (rendered in CardTemplates) */
+  isDynamicEmoji?: boolean;
 }
 
 // --- SVG patterns as data URIs ---
@@ -97,5 +99,13 @@ export const OVERLAY_EFFECTS: OverlayEffect[] = [
       backgroundSize: '50px 50px',
       mixBlendMode: 'multiply' as const,
     },
+  },
+
+  // ── Dynamic Emoji Pattern ──
+  {
+    id: 'emoji-pattern',
+    label: 'Emoji印花',
+    isDynamicEmoji: true,
+    style: {}, // Rendered dynamically in CardTemplates
   },
 ];

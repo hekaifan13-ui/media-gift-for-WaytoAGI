@@ -552,6 +552,19 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                     </button>
                   ))}
                 </div>
+                {data.overlayEffect === 'emoji-pattern' && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0">Emoji</label>
+                    <input
+                      type="text"
+                      value={data.emojiPattern || ''}
+                      onChange={(e) => updateData('emojiPattern', e.target.value)}
+                      placeholder="e.g. ✦"
+                      className="flex-1 text-base px-2 py-1 rounded-lg border border-gray-200 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 outline-none text-center"
+                      maxLength={4}
+                    />
+                  </div>
+                )}
               </div>
             </section>
           )}
@@ -612,6 +625,19 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                            </button>
                          ))}
                        </div>
+                       {data.overlayEffect === 'emoji-pattern' && (
+                         <div className="flex items-center gap-2 pt-1">
+                           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0">Emoji</label>
+                           <input
+                             type="text"
+                             value={data.emojiPattern || ''}
+                             onChange={(e) => updateData('emojiPattern', e.target.value)}
+                             placeholder="e.g. ✦"
+                             className="flex-1 text-base px-2 py-1 rounded-lg border border-gray-200 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-200 outline-none text-center"
+                             maxLength={4}
+                           />
+                         </div>
+                       )}
                      </div>
                    )}
                    

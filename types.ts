@@ -51,6 +51,7 @@ export interface PostcardData {
   bgStyle?: string;        // Livestream full-card background preset key
   footerBgStyle?: string;  // Modern footer background preset key
   overlayEffect?: string;  // Overlay effect id (holographic, stamp, foil, etc.)
+  emojiPattern?: string;   // Custom emoji for the emoji overlay pattern
 }
 
 export interface TemplateConfig {
