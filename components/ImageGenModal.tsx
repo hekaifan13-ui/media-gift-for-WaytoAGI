@@ -45,8 +45,11 @@ const ImageGenModal: React.FC<ImageGenModalProps> = ({ onSelect, onClose, initia
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     
+    // GPT Image 2 only supports txt_2_img; use Seedream 4.5 for img_2_img
+    const model = mode === 'img_2_img' ? 'doubao/seedream-4.5' : 'openai/gpt-image-2';
+
     const options: any = {
-      model: 'openai/gpt-image-2',
+      model,
       prompt: prompt.trim(),
       type: mode,
       ratio: aspectRatio,
@@ -185,9 +188,9 @@ const ImageGenModal: React.FC<ImageGenModalProps> = ({ onSelect, onClose, initia
             </div>
 
             <div className="text-[10px] text-gray-400 bg-gray-100 rounded-lg px-3 py-1.5 flex items-center gap-2">
-              <span className="font-bold text-indigo-500">GPT Image 2</span>
+              <span className="font-bold text-indigo-500">{mode === 'img_2_img' ? 'Seedream 4.5' : 'GPT Image 2'}</span>
               <span className="opacity-70">|</span>
-              <span>High quality · 2K resolution</span>
+              <span>{mode === 'img_2_img' ? 'Fast · Supports image transform' : 'High quality · 2K resolution'}</span>
             </div>
           </div>
 
@@ -264,7 +267,7 @@ const ImageGenModal: React.FC<ImageGenModalProps> = ({ onSelect, onClose, initia
                    )}
                 </div>
                 <p className="text-sm font-medium">
-                  {isPolling ? "GPT Image 2 is generating..." : isSubmitting ? "Submitting..." : "Your creation will appear here"}
+                  {isPolling ? "AI is generating..." : isSubmitting ? "Submitting..." : "Your creation will appear here"}
                 </p>
              </div>
            )}

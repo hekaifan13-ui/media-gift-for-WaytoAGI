@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { supabase } from "@/src/integrations/supabase/client";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 
 interface GeneratedImage {
   url: string;
@@ -48,7 +49,13 @@ export function useAIImage() {
         }
       );
 
-      if (invokeError) throw new Error(invokeError.message || "Failed to submit");
+      if (invokeError) {
+        if (invokeError instanceof FunctionsHttpError) {
+          const body = await invokeError.context.json().catch(() => ({}));
+          throw new Error(body.message || "Image generation failed");
+        }
+        throw new Error(invokeError.message || "Failed to submit");
+      }
       if (!data?.success || !data.task_id) {
         throw new Error(data?.message || "Image generation failed");
       }
