@@ -31,6 +31,7 @@ const EffectOverlay = ({ effectId }: { effectId?: string }) => {
     <>
       <div className="absolute inset-0 pointer-events-none z-[2]" style={effect.style} />
       {effect.style2 && <div className="absolute inset-0 pointer-events-none z-[2]" style={effect.style2} />}
+      {effect.style3 && <div className="absolute inset-0 pointer-events-none z-[2]" style={effect.style3} />}
     </>
   );
 };
