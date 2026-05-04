@@ -230,20 +230,21 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
       await new Promise(r => setTimeout(r, 100));
       const width = cardRef.current.offsetWidth;
       const height = cardRef.current.offsetHeight;
+      const isJpg = downloadFormat === 'jpg';
       const options = {
-        quality: 1.0,
-        pixelRatio: 3,
+        quality: isJpg ? 0.85 : 1.0,
+        pixelRatio: isJpg ? 2 : 3,
         skipAutoScale: true,
         cacheBust: true,
         width: width,
         height: height,
-        backgroundColor: 'transparent',
+        backgroundColor: isJpg ? '#ffffff' : 'transparent',
         style: { transform: 'none', transformOrigin: 'top left', boxShadow: 'none' }
       };
       
-      const dataUrl = downloadFormat === 'png' 
-        ? await htmlToImage.toPng(cardRef.current, options)
-        : await htmlToImage.toJpeg(cardRef.current, options);
+      const dataUrl = isJpg
+        ? await htmlToImage.toJpeg(cardRef.current, options)
+        : await htmlToImage.toPng(cardRef.current, options);
       
       const link = document.createElement('a');
       link.download = `postcard-${data.templateId}-${Date.now()}.${downloadFormat}`;
