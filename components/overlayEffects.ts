@@ -87,56 +87,33 @@ export const OVERLAY_EFFECTS: OverlayEffect[] = [
     },
   },
 
-  // ── Foil Effects ──
+  // ── More Patterns ──
   {
-    id: 'foil-gold',
-    label: '金箔',
-    // Layer 1: strong golden gradient streaks
+    id: 'pattern-hexagon',
+    label: '蜂窝',
     style: {
-      background: 'linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(218,165,32,0.35) 25%, rgba(255,223,0,0.1) 40%, rgba(184,134,11,0.3) 60%, rgba(255,215,0,0.15) 75%, rgba(218,165,32,0.25) 100%)',
-      mixBlendMode: 'overlay' as const,
-    },
-    // Layer 2: large specular gold blobs
-    style2: {
-      background: 'radial-gradient(ellipse at 20% 30%, rgba(255,223,100,0.35) 0%, transparent 45%), radial-gradient(ellipse at 80% 70%, rgba(218,165,32,0.3) 0%, transparent 45%), radial-gradient(ellipse at 50% 10%, rgba(255,200,50,0.2) 0%, transparent 40%)',
-      mixBlendMode: 'screen' as const,
-    },
-    // Layer 3: fine metallic shimmer lines
-    style3: {
-      background: 'repeating-linear-gradient(160deg, transparent 0px, transparent 6px, rgba(255,215,0,0.08) 6px, rgba(255,215,0,0.08) 7px)',
-      mixBlendMode: 'overlay' as const,
+      backgroundImage: `url("data:image/svg+xml,%3Csvg width='56' height='100' viewBox='0 0 56 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M28 66L0 50 0 16 28 0 56 16 56 50z' fill='none' stroke='%239C92AC' stroke-width='1' stroke-opacity='0.14'/%3E%3Cpath d='M28 100L0 84 0 50 28 34 56 50 56 84z' fill='none' stroke='%239C92AC' stroke-width='1' stroke-opacity='0.14'/%3E%3C/svg%3E")`,
+      backgroundRepeat: 'repeat',
+      backgroundSize: '56px 100px',
+      mixBlendMode: 'multiply' as const,
     },
   },
   {
-    id: 'foil-silver',
-    label: '银箔',
+    id: 'pattern-stripe',
+    label: '斜线条纹',
     style: {
-      background: 'linear-gradient(135deg, rgba(200,200,210,0.2) 0%, rgba(240,240,255,0.4) 25%, rgba(180,180,195,0.15) 45%, rgba(220,220,235,0.35) 65%, rgba(200,200,210,0.2) 85%, rgba(235,235,245,0.3) 100%)',
-      mixBlendMode: 'overlay' as const,
-    },
-    style2: {
-      background: 'radial-gradient(ellipse at 25% 20%, rgba(255,255,255,0.4) 0%, transparent 45%), radial-gradient(ellipse at 70% 75%, rgba(220,220,240,0.35) 0%, transparent 45%), radial-gradient(ellipse at 50% 50%, rgba(240,240,255,0.2) 0%, transparent 50%)',
-      mixBlendMode: 'screen' as const,
-    },
-    style3: {
-      background: 'repeating-linear-gradient(150deg, transparent 0px, transparent 8px, rgba(255,255,255,0.1) 8px, rgba(255,255,255,0.1) 9px)',
-      mixBlendMode: 'overlay' as const,
+      background: 'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(156,146,172,0.1) 8px, rgba(156,146,172,0.1) 10px)',
+      mixBlendMode: 'multiply' as const,
     },
   },
   {
-    id: 'foil-rose',
-    label: '玫瑰箔',
+    id: 'pattern-star',
+    label: '星星散点',
     style: {
-      background: 'linear-gradient(135deg, rgba(255,110,130,0.18) 0%, rgba(255,182,193,0.35) 25%, rgba(255,105,180,0.15) 45%, rgba(219,112,147,0.3) 65%, rgba(255,20,147,0.12) 85%, rgba(255,150,170,0.25) 100%)',
-      mixBlendMode: 'overlay' as const,
-    },
-    style2: {
-      background: 'radial-gradient(ellipse at 30% 25%, rgba(255,192,203,0.4) 0%, transparent 45%), radial-gradient(ellipse at 75% 70%, rgba(255,105,180,0.3) 0%, transparent 45%), radial-gradient(ellipse at 50% 50%, rgba(255,182,193,0.2) 0%, transparent 50%)',
-      mixBlendMode: 'screen' as const,
-    },
-    style3: {
-      background: 'repeating-linear-gradient(140deg, transparent 0px, transparent 7px, rgba(255,182,193,0.1) 7px, rgba(255,182,193,0.1) 8px)',
-      mixBlendMode: 'overlay' as const,
+      backgroundImage: `url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 50 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.12'%3E%3Cpath d='M25 2l3.09 9.51h10l-8.09 5.88 3.09 9.51L25 21.02l-8.09 5.88 3.09-9.51-8.09-5.88h10z'/%3E%3C/g%3E%3C/svg%3E")`,
+      backgroundRepeat: 'repeat',
+      backgroundSize: '50px 50px',
+      mixBlendMode: 'multiply' as const,
     },
   },
 ];
