@@ -126,7 +126,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
           )}
           
           {/* Gradient Overlay at bottom of image */}
-          <div className="absolute bottom-0 left-0 right-0 h-60 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-80 pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-60 bg-gradient-to-t from-black/30 via-black/10 to-transparent opacity-80 pointer-events-none"></div>
 
           {/* LOGOS SECTION - draggable/scalable */}
           {data.logos && data.logos.length > 0 && (
