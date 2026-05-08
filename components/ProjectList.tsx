@@ -198,7 +198,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
 
                         {/* Center - Poster */}
                         <div className="flex-grow flex items-center justify-center mb-10 px-2">
-                          <div className="relative w-[75%] max-w-full group/poster transition-all duration-500 hover:scale-[1.08] hover:-translate-y-2">
+                          <div className="relative w-[90%] max-w-full group/poster transition-all duration-500 hover:scale-[1.08] hover:-translate-y-2">
                             {/* Enhanced Shadow */}
                             <div className="absolute inset-0 bg-black/40 blur-[40px] rounded-[32px] scale-90 translate-y-10 transition-all duration-500 group-hover/poster:bg-black/50 group-hover/poster:blur-[50px] group-hover/poster:translate-y-14" />
                             
@@ -208,12 +208,11 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
                                 <img
                                   src={preview.url}
                                   alt={project.title}
-                                  className="relative w-full object-cover rounded-[20px] shadow-sm transition-all duration-500 group-hover/poster:shadow-2xl"
-                                  style={{ aspectRatio: preview.aspect }}
+                                  className="relative w-full object-cover rounded-[20px] shadow-sm transition-all duration-500 group-hover/poster:shadow-2xl aspect-[3/4]"
                                   crossOrigin="anonymous"
                                 />
                               ) : (
-                                <div className="relative w-full aspect-[2/3] rounded-[20px] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                <div className="relative w-full aspect-[3/4] rounded-[20px] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                                   <Layout size={32} className="text-gray-300" />
                                 </div>
                               )}
