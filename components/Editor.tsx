@@ -51,7 +51,15 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(projectTitle);
+  const titleManuallyEdited = useRef(projectTitle !== 'Untitled Project');
   const [savingGuest, setSavingGuest] = useState<Record<string, 'saving' | 'saved'>>({});
+
+  // Auto-fill project title from description/topic if not manually set
+  useEffect(() => {
+    if (titleManuallyEdited.current) return;
+    const desc = data.footerText?.trim() || data.liveTopic?.trim() || data.message?.trim() || '';
+    if (desc) setTitleInput(desc.slice(0, 60));
+  }, [data.footerText, data.liveTopic, data.message]);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -326,7 +334,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                   <input
                     autoFocus
                     value={titleInput}
-                    onChange={(e) => setTitleInput(e.target.value)}
+                    onChange={(e) => { titleManuallyEdited.current = true; setTitleInput(e.target.value); }}
                     onBlur={() => setEditingTitle(false)}
                     onKeyDown={(e) => { if (e.key === 'Enter') setEditingTitle(false); }}
                     className="text-sm font-bold text-gray-800 bg-gray-100 rounded-md px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-400 w-full"
