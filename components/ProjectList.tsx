@@ -1,11 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, FolderOpen, Clock, Layout } from 'lucide-react';
+import { Plus, Trash2, FolderOpen, Clock, Layout } from 'lucide-react';
 import { ProjectRow, getProjects, deleteProject } from '../services/storageService';
+import { TemplateId } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ProjectListProps {
   onNewProject: () => void;
   onLoadProject: (project: ProjectRow) => void;
+}
+
+/** Find the first available image from project data, return url + template aspect */
+function getProjectPreview(project: ProjectRow): { url: string; aspect: string } | null {
+  const data = project.data;
+  if (!data) return null;
+  // Priority: Modern (10:16), then Livestream (16:9), then Code
+  const order: { tid: TemplateId; aspect: string }[] = [
+    { tid: TemplateId.MODERN, aspect: '10/16' },
+    { tid: TemplateId.LIVESTREAM, aspect: '16/9' },
+    { tid: TemplateId.CODE, aspect: '4/3' },
+  ];
+  for (const { tid, aspect } of order) {
+    const tpl = data[tid];
+    if (tpl?.image) return { url: tpl.image, aspect };
+  }
+  return null;
 }
 
 const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }) => {
@@ -79,7 +97,9 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence>
-              {projects.map((project) => (
+              {projects.map((project) => {
+                const preview = getProjectPreview(project);
+                return (
                 <motion.div
                   key={project.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -89,11 +109,22 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
                   onClick={() => onLoadProject(project)}
                 >
                   {/* Thumbnail */}
-                  <div className="aspect-video bg-gray-50 relative overflow-hidden">
-                    {project.thumbnail ? (
-                      <img src={project.thumbnail} alt="" className="w-full h-full object-cover" />
+                  <div
+                    className="bg-gray-50 relative overflow-hidden flex items-center justify-center p-4"
+                    style={{ minHeight: '160px' }}
+                  >
+                    {preview ? (
+                      <img
+                        src={preview.url}
+                        alt=""
+                        className="rounded-lg object-cover shadow-sm max-h-[240px]"
+                        style={{ aspectRatio: preview.aspect }}
+                        crossOrigin="anonymous"
+                      />
+                    ) : project.thumbnail ? (
+                      <img src={project.thumbnail} alt="" className="w-full h-full object-cover absolute inset-0" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-full h-full flex items-center justify-center absolute inset-0">
                         <Layout size={40} className="text-gray-200" />
                       </div>
                     )}
@@ -118,7 +149,8 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
                     </div>
                   </div>
                 </motion.div>
-              ))}
+                );
+              })}
             </AnimatePresence>
           </div>
         )}
