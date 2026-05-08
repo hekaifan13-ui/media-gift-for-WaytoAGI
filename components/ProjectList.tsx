@@ -197,8 +197,8 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
                         </div>
 
                         {/* Center - Poster */}
-                        <div className="flex-grow flex items-center justify-center mb-10 px-2">
-                          <div className="relative w-[90%] max-w-full group/poster transition-all duration-500 hover:scale-[1.08] hover:-translate-y-2">
+                        <div className="flex-grow flex items-center justify-center mb-10">
+                          <div className="relative w-full group/poster transition-all duration-500 hover:scale-[1.05] hover:-translate-y-2">
                             {/* Enhanced Shadow */}
                             <div className="absolute inset-0 bg-black/40 blur-[40px] rounded-[32px] scale-90 translate-y-10 transition-all duration-500 group-hover/poster:bg-black/50 group-hover/poster:blur-[50px] group-hover/poster:translate-y-14" />
                             
