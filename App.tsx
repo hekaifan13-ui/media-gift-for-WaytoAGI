@@ -6,7 +6,7 @@ import Editor from './components/Editor';
 import ProjectList from './components/ProjectList';
 import GuestLibrary from './components/GuestLibrary';
 import LogoLibrary from './components/LogoLibrary';
-import { ProjectRow } from './services/storageService';
+import { ProjectRow, createProject } from './services/storageService';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.PROJECTS);
@@ -43,8 +43,17 @@ const App: React.FC = () => {
     setAppState(AppState.PROJECTS);
   };
 
-  const handleSelectTemplate = (id: TemplateId) => {
+  const handleSelectTemplate = async (id: TemplateId) => {
     setActiveTemplate(id);
+    // Auto-save new project to DB on first template selection
+    if (!currentProjectId) {
+      try {
+        const project = await createProject(currentProjectTitle, projectData);
+        setCurrentProjectId(project.id);
+      } catch (err) {
+        console.error('Auto-save failed:', err);
+      }
+    }
     setAppState(AppState.EDITOR);
   };
 
