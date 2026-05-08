@@ -183,11 +183,11 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9 }}
                         transition={{ delay: index * 0.08 }}
-                        className="flex flex-col h-full bg-white p-6 sm:p-8 rounded-[32px] group/card transition-all duration-500 hover:bg-gray-50/80 hover:shadow-lg cursor-pointer"
+                        className="flex flex-col h-full bg-white p-4 rounded-[32px] group/card transition-all duration-500 hover:bg-gray-50/80 hover:shadow-lg cursor-pointer"
                         onClick={() => onLoadProject(project)}
                       >
                         {/* Top Row */}
-                        <div className="flex justify-between items-center mb-8">
+                        <div className="flex justify-between items-center mb-3">
                           <h3 className="text-[14px] font-medium text-[#1A1A1A] truncate pr-2 transition-all duration-300 group-hover/card:font-semibold origin-left">
                             {project.title}
                           </h3>
@@ -197,7 +197,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
                         </div>
 
                         {/* Center - Poster */}
-                        <div className="flex-grow flex items-center justify-center mb-10">
+                        <div className="flex-grow flex items-center justify-center mb-3">
                           <div className="relative w-full group/poster transition-all duration-500 hover:scale-[1.05] hover:-translate-y-2">
                             {/* Enhanced Shadow */}
                             <div className="absolute inset-0 bg-black/40 blur-[40px] rounded-[32px] scale-90 translate-y-10 transition-all duration-500 group-hover/poster:bg-black/50 group-hover/poster:blur-[50px] group-hover/poster:translate-y-14" />
