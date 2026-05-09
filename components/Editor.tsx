@@ -600,15 +600,19 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                    {data.templateId === TemplateId.MODERN && data.modernLayout !== 'portrait-full' && (
                      <div className="space-y-2 mb-4">
                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Footer Background</label>
-                       <div className="grid grid-cols-7 gap-1.5">
+                       <div className="grid grid-cols-4 gap-2">
                          {Object.entries(FOOTER_BG_PRESETS).map(([key, preset]) => (
                            <button
                              key={key}
                              title={preset.label}
                              onClick={() => updateData('footerBgStyle', key)}
-                             className={`h-7 rounded-lg border-2 transition-all hover:scale-110 ${(data.footerBgStyle || 'mint') === key ? 'border-cyan-500 scale-110 shadow-sm ring-1 ring-cyan-300' : 'border-transparent hover:border-gray-200'}`}
+                             className={`h-10 rounded-xl border-2 transition-all flex items-end justify-start p-1.5 overflow-hidden ${(data.footerBgStyle || 'mint') === key ? 'border-cyan-500 shadow-md scale-[1.04]' : 'border-transparent hover:border-cyan-200'}`}
                              style={{ background: preset.bg }}
-                           />
+                           >
+                             <span className={`text-[9px] font-black tracking-wide truncate leading-none ${preset.isDark ? 'text-white/80' : 'text-gray-700/80'}`}>
+                               {preset.label}
+                             </span>
+                           </button>
                          ))}
                        </div>
                      </div>

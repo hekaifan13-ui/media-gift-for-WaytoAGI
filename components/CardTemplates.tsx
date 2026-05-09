@@ -321,19 +321,19 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
             
             {/* Left: Text Description */}
             <div className="flex-1 pr-10 flex flex-col justify-center items-start h-full min-w-0 relative z-10">
-               <p className="text-[25px] font-light text-gray-500 mb-3 flex items-center gap-5">
+               <p className={`text-[25px] font-light mb-3 flex items-center gap-5 ${footerPreset.isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                   <span className="w-5 h-5 bg-cyan-500 rounded-full"></span>
                   {data.date || "TODAY"}
                </p>
                <h3 
-                 className="font-serif font-black text-gray-800 italic leading-tight mb-5 whitespace-pre-wrap text-left"
+                 className={`font-serif font-black italic leading-tight mb-5 whitespace-pre-wrap text-left ${footerPreset.isDark ? 'text-white' : 'text-gray-800'}`}
                  style={{ fontSize: `${data.footerFontSize || 48}px` }}
                >
                  {data.footerText || "Scan to view memories"}
                </h3>
-               <div className="flex items-center gap-4 text-[25px] text-gray-400 truncate w-full">
+               <div className={`flex items-center gap-4 text-[25px] truncate w-full ${footerPreset.isDark ? 'text-gray-400' : 'text-gray-400'}`}>
                   <Feather size={25} /> 
-                  <span className="truncate font-light text-gray-500">{data.sender || "Sender"}</span>
+                  <span className={`truncate font-light ${footerPreset.isDark ? 'text-gray-300' : 'text-gray-500'}`}>{data.sender || "Sender"}</span>
                </div>
             </div>
 
@@ -348,7 +348,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
                         <QrCode className="text-gray-200" size={68} />
                      )}
                   </div>
-                  <span className="text-[18px] font-black uppercase tracking-widest text-gray-500 text-center w-[156px] truncate">
+                  <span className={`text-[18px] font-black uppercase tracking-widest text-center w-[156px] truncate ${footerPreset.isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                     {data.qr1Text || "Web"}
                   </span>
                </div>
@@ -362,7 +362,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
                         <QrCode className="text-gray-200" size={68} />
                      )}
                   </div>
-                  <span className="text-[18px] font-black uppercase tracking-widest text-gray-500 text-center w-[156px] truncate">
+                  <span className={`text-[18px] font-black uppercase tracking-widest text-center w-[156px] truncate ${footerPreset.isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                     {data.qr2Text || "Info"}
                   </span>
                </div>
