@@ -299,7 +299,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
 
        {/* BOTTOM SECTION: Footer with selectable background */}
        {!isFullPortrait && (
-         <div className="flex-1 px-12 py-6 flex items-center justify-between border-t border-gray-100/50 relative z-10 overflow-hidden">
+         <div className="flex-1 px-12 py-6 flex items-center justify-between relative z-10 overflow-hidden">
             {/* Base gradient background */}
             <div className="absolute inset-0 -z-10" style={{ background: footerPreset.bg }} />
 
