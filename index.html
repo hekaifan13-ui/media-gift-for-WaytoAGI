@@ -12,7 +12,7 @@
           extend: {
             fontFamily: {
               hand: ['"Dancing Script"', 'cursive'],
-              serif: ['"Playfair Display"', 'serif'],
+              serif: ['"Playfair Display"', '"Noto Serif SC"', 'serif'],
               sans: ['"Montserrat"', 'sans-serif'],
               typewriter: ['"Special Elite"', 'monospace'],
               neon: ['"Courier Prime"', 'monospace'], // Fallback for neon
@@ -46,7 +46,7 @@
       // We fetch the CSS text and inject it into a <style> tag.
       // This bypasses the "Cross-Origin" stylesheet restriction that prevents reading cssRules.
       (async function() {
-        const fontUrl = "https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;600&family=Special+Elite&display=swap";
+        const fontUrl = "https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:wght@300;400;600&family=Noto+Serif+SC:wght@400;700;900&family=Special+Elite&display=swap";
         try {
           const response = await fetch(fontUrl);
           if (!response.ok) throw new Error("Network response was not ok");
