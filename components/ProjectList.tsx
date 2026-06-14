@@ -1,34 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Layout, Search, Clock } from 'lucide-react';
-import { ProjectRow, getProjects, deleteProject } from '../services/storageService';
-import { TemplateId } from '../types';
+import { ProjectMeta, getProjects, deleteProject } from '../services/storageService';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ProjectListProps {
   onNewProject: () => void;
-  onLoadProject: (project: ProjectRow) => void;
-}
-
-/** Find the first available image from project data, return url + template aspect */
-function getProjectPreview(project: ProjectRow): { url: string; aspect: string } | null {
-  const data = project.data;
-  if (!data) return null;
-  const order: { tid: TemplateId; aspect: string }[] = [
-    { tid: TemplateId.MODERN, aspect: '10/16' },
-    { tid: TemplateId.LIVESTREAM, aspect: '16/9' },
-    { tid: TemplateId.CODE, aspect: '4/3' },
-  ];
-  for (const { tid, aspect } of order) {
-    const tpl = data[tid];
-    if (tpl?.image) return { url: tpl.image, aspect };
-  }
-  return null;
+  onLoadProject: (project: ProjectMeta) => void;
 }
 
 const TABS = ['All', 'Recent', 'Favorites'];
 
 const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }) => {
-  const [projects, setProjects] = useState<ProjectRow[]>([]);
+  const [projects, setProjects] = useState<ProjectMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
   const [searchValue, setSearchValue] = useState('');
@@ -175,7 +158,6 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[6px]">
                 <AnimatePresence>
                   {filteredProjects.map((project, index) => {
-                    const preview = getProjectPreview(project);
                     return (
                       <motion.div
                         key={project.id}
@@ -204,9 +186,9 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
                             
                             {/* Poster Image */}
                             <div className="relative z-10 transition-transform duration-500">
-                              {preview ? (
+                              {project.thumbnail ? (
                                 <img
-                                  src={preview.url}
+                                  src={project.thumbnail}
                                   alt={project.title}
                                   className="relative w-full object-cover rounded-[20px] shadow-sm transition-all duration-500 group-hover/poster:shadow-2xl aspect-[3/4]"
                                   crossOrigin="anonymous"

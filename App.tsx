@@ -6,7 +6,7 @@ import Editor from './components/Editor';
 import ProjectList from './components/ProjectList';
 import GuestLibrary from './components/GuestLibrary';
 import LogoLibrary from './components/LogoLibrary';
-import { ProjectRow, createProject } from './services/storageService';
+import { ProjectMeta, getProject, createProject } from './services/storageService';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.PROJECTS);
@@ -26,12 +26,16 @@ const App: React.FC = () => {
     setAppState(AppState.INTRO);
   };
 
-  const handleLoadProject = (project: ProjectRow) => {
-    setProjectData(project.data);
-    setCurrentProjectId(project.id);
-    setCurrentProjectTitle(project.title);
-    // Go directly to selection (acrylic box, already open)
-    setAppState(AppState.SELECTION);
+  const handleLoadProject = async (meta: ProjectMeta) => {
+    setCurrentProjectId(meta.id);
+    setCurrentProjectTitle(meta.title);
+    setAppState(AppState.SELECTION); // show selection while loading
+    try {
+      const full = await getProject(meta.id);
+      if (full) setProjectData(full.data);
+    } catch (err) {
+      console.error('Failed to load project data:', err);
+    }
   };
 
   // ── Template Selection (Acrylic Box) ──

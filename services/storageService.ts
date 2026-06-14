@@ -31,14 +31,18 @@ export async function uploadBase64(base64: string, folder: string): Promise<stri
 }
 
 // ─── Projects ───────────────────────────────────────────────────
-export interface ProjectRow {
+/** Lightweight metadata — no `data` field, safe for list views */
+export interface ProjectMeta {
   id: string;
   title: string;
   template_id: string;
-  data: ProjectAllData;
   thumbnail: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ProjectRow extends ProjectMeta {
+  data: ProjectAllData;
 }
 
 /** Migrate old single-PostcardData format to ProjectAllData */
@@ -57,16 +61,14 @@ function migrateProjectData(raw: any): ProjectAllData {
   return { ...INITIAL_PROJECT_DATA };
 }
 
-export async function getProjects(): Promise<ProjectRow[]> {
+/** Fetch only metadata — no heavy base64 images */
+export async function getProjects(): Promise<ProjectMeta[]> {
   const { data, error } = await supabase
     .from('projects')
-    .select('*')
+    .select('id, title, template_id, thumbnail, created_at, updated_at')
     .order('updated_at', { ascending: false });
   if (error) throw error;
-  return ((data || []) as any[]).map(row => ({
-    ...row,
-    data: migrateProjectData(row.data),
-  })) as ProjectRow[];
+  return (data || []) as ProjectMeta[];
 }
 
 export async function getProject(id: string): Promise<ProjectRow | null> {
