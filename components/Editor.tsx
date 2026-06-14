@@ -267,14 +267,33 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
     }
   };
 
+  const generateThumbnail = async (): Promise<string | undefined> => {
+    if (!cardRef.current) return undefined;
+    try {
+      const dataUrl = await htmlToImage.toJpeg(cardRef.current, {
+        quality: 0.6,
+        pixelRatio: 0.5,
+        cacheBust: true,
+        backgroundColor: '#ffffff',
+        style: { transform: 'none', transformOrigin: 'top left', boxShadow: 'none' },
+      });
+      return await uploadBase64(dataUrl, 'thumbnails');
+    } catch (err) {
+      console.error('Thumbnail generation failed:', err);
+      return undefined;
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const thumbnail = await generateThumbnail();
       if (projectId) {
-        await updateProject(projectId, { title: titleInput, data: projectData });
+        await updateProject(projectId, { title: titleInput, data: projectData, ...(thumbnail ? { thumbnail } : {}) });
         onProjectSaved(projectId, titleInput);
       } else {
         const project = await createProject(titleInput, projectData);
+        if (thumbnail) await updateProject(project.id, { thumbnail });
         onProjectSaved(project.id, titleInput);
       }
       setSaveStatus('saved');

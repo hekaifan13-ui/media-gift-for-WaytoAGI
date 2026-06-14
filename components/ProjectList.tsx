@@ -49,14 +49,14 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
   );
 
   return (
-    <div className="min-h-screen bg-[#F0F0F0] p-4 md:p-12 flex items-center justify-center font-sans relative overflow-hidden">
+    <div className="h-screen overflow-y-auto bg-[#F0F0F0] p-4 md:p-12 flex items-start justify-center font-sans relative">
       {/* Animated Background Gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100/40 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-100/30 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-      <div className="absolute top-[50%] left-[50%] w-[30%] h-[30%] bg-amber-100/20 rounded-full blur-[100px] pointer-events-none animate-pulse" />
+      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100/40 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-100/30 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+      <div className="fixed top-[50%] left-[50%] w-[30%] h-[30%] bg-amber-100/20 rounded-full blur-[100px] pointer-events-none animate-pulse" />
 
       {/* Main Container */}
-      <div className="w-[95%] max-w-[1300px] bg-white rounded-[40px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col relative z-10 border border-gray-100 min-h-[80vh]">
+      <div className="w-[95%] max-w-[1300px] bg-white rounded-[40px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col relative z-10 border border-gray-100 min-h-[80vh] my-auto">
         
         {/* Header */}
         <header className="bg-white flex flex-col md:flex-row items-center justify-between px-10 py-8 relative z-20">
