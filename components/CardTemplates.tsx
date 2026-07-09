@@ -740,8 +740,8 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
 
       {/* Main Content Area */}
       <div className="flex-1 flex px-10 pb-10 gap-8 min-h-0 relative z-10">
-        {/* Left: Main Visual Area (Hollow 16:9 frame) — white interior, background shows outside */}
-        <div className="aspect-[16/9] h-full border-[3px] rounded-[32px] relative shrink-0 z-10 overflow-hidden" style={{ background: isDark ? 'rgba(0,0,0,0.85)' : '#ffffff', borderColor: accent }}>
+        {/* Left: Main Visual Area (Hollow 16:9 frame) — transparent interior, background shows through */}
+        <div className="aspect-[16/9] h-full border-[3px] rounded-[32px] relative shrink-0 z-10 overflow-hidden" style={{ background: 'transparent', borderColor: accent }}>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
              <ImageIcon size={80} className="mb-4 opacity-[0.08]" style={{ color: isDark ? '#ffffff' : accent }} />
