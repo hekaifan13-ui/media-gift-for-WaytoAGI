@@ -15,6 +15,7 @@ import ImageGenModal from './ImageGenModal';
 import { motion, AnimatePresence } from 'motion/react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { createProject, updateProject, createGuest, uploadBase64 } from '../services/storageService';
+import { trimTransparentEdges } from '../utils/trimImage';
 
 // Need to declare global htmlToImage from the script tag
 declare const htmlToImage: any;
@@ -132,7 +133,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
     }
   };
 
-  const handleCropComplete = (croppedImage: string) => {
+  const handleCropComplete = async (croppedImage: string) => {
     if (croppingFile) {
       if (croppingFile.key === 'authors' && typeof croppingFile.index === 'number') {
          const updatedAuthors = [...(data.authors || [])];
@@ -144,7 +145,9 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
             updateData('authors', updatedAuthors);
          }
       } else if (croppingFile.key === 'logos') {
-         const newLogos = [...(data.logos || []), croppedImage];
+         // Auto-trim transparent padding so all logos render at a consistent visual size
+         const trimmed = await trimTransparentEdges(croppedImage);
+         const newLogos = [...(data.logos || []), trimmed];
          updateData('logos', newLogos);
       } else {
          updateData(croppingFile.key, croppedImage);
