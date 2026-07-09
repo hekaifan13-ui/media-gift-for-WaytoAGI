@@ -299,20 +299,22 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
         // visual frame (CSS mask is unreliable in html-to-image export).
         const canvas: HTMLCanvasElement = await htmlToImage.toCanvas(cardRef.current, options);
         const hole = cardRef.current.querySelector<HTMLElement>('[data-export-hole="true"]');
-        // Derive the real bitmap ratio from the produced canvas instead of trusting pixelRatio.
-        const pr = cardRef.current.offsetWidth ? (canvas.width / cardRef.current.offsetWidth) : options.pixelRatio;
-        console.log('[export] canvas', canvas.width, canvas.height, 'pr', pr, 'hole?', !!hole);
         if (hole) {
+          // Compute the hole geometry as ratios relative to the card, then scale by the
+          // ACTUAL produced bitmap size. This is fully decoupled from pixelRatio and any
+          // CSS transform/scale, so the punched hole always lands exactly on the frame.
           const cardRect = cardRef.current.getBoundingClientRect();
           const holeRect = hole.getBoundingClientRect();
-          const scaleX = cardRef.current.offsetWidth ? (cardRect.width / cardRef.current.offsetWidth) : 1;
-          const scaleY = cardRef.current.offsetHeight ? (cardRect.height / cardRef.current.offsetHeight) : 1;
-          const x = ((holeRect.left - cardRect.left) / scaleX) * pr;
-          const y = ((holeRect.top - cardRect.top) / scaleY) * pr;
-          const w = (holeRect.width / scaleX) * pr;
-          const h = (holeRect.height / scaleY) * pr;
-          const r = 32 * pr; // matches rounded-[32px]
-          console.log('[export] hole rect', `x=${x} y=${y} w=${w} h=${h} sx=${scaleX} sy=${scaleY} cw=${canvas.width} ch=${canvas.height}`);
+          const rx = (holeRect.left - cardRect.left) / cardRect.width;
+          const ry = (holeRect.top - cardRect.top) / cardRect.height;
+          const rw = holeRect.width / cardRect.width;
+          const rh = holeRect.height / cardRect.height;
+          const x = rx * canvas.width;
+          const y = ry * canvas.height;
+          const w = rw * canvas.width;
+          const h = rh * canvas.height;
+          // rounded-[32px] on a 1440px-wide card → convert 32px to the bitmap scale
+          const r = 32 * (canvas.width / cardRect.width);
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.save();
