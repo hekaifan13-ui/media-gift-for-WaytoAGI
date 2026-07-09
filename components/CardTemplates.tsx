@@ -654,6 +654,9 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
   const glowC_scale = 1 + (Math.sin(tau * 2) * 0.5 + 0.5) * 0.18;
   const glowC_op = 0.3 + (Math.sin(tau + 3.14) * 0.5 + 0.5) * 0.55;
 
+  // Marquee light travelling around the 16:9 frame edge (one full lap per cycle)
+  const marqueeAngle = phase * 360;
+
 
   // --- Logos Drag & Scale Logic ---
   const handleLogosMouseDown = (e: React.MouseEvent) => {
@@ -832,6 +835,20 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
       <div className="flex-1 flex px-10 pb-10 gap-8 min-h-0 relative z-10">
         {/* Left: Main Visual Area (Hollow 16:9 frame) — transparent interior, background cut out behind it */}
         <div ref={frameRef} className="aspect-[16/9] h-full border-[3px] rounded-[32px] relative shrink-0 z-10 overflow-hidden" style={{ background: 'transparent', borderColor: accent }}>
+
+          {/* Marquee light — a bright highlight travelling around the frame edge */}
+          <div
+            className="absolute pointer-events-none rounded-[32px] z-10"
+            style={{
+              inset: 0,
+              padding: '3px',
+              background: `conic-gradient(from ${marqueeAngle}deg at 50% 50%, transparent 0deg, transparent 150deg, ${hexToRgba(accent, 0)} 160deg, ${accent} 175deg, #ffffff 180deg, ${accent} 185deg, ${hexToRgba(accent, 0)} 200deg, transparent 210deg, transparent 360deg)`,
+              WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
+              WebkitMaskComposite: 'xor',
+              maskComposite: 'exclude',
+              filter: `drop-shadow(0 0 8px ${hexToRgba(accent, 0.7)})`,
+            }}
+          />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
              <ImageIcon size={80} className="mb-4 opacity-[0.08]" style={{ color: isDark ? '#ffffff' : accent }} />
