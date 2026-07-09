@@ -258,7 +258,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
             <div 
               className={`absolute z-30 origin-top-right ${isExporting ? '' : 'cursor-move group/logos'}`}
               style={{
-                top: '24px',
+                top: '44px',
                 right: '32px',
                 transform: `translate(${data.logosLayout?.x || 0}px, ${data.logosLayout?.y || 0}px) scale(${data.logosLayout?.scale || 1})`
               }}
