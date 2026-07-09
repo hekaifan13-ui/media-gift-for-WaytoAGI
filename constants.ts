@@ -38,7 +38,7 @@ const SHARED_DEFAULTS: Partial<PostcardData> = {
   authors: [],
   authorsLayout: { x: 0, y: 0, scale: 1 },
   authorsTextColor: "#ffffff",
-  logos: ["https://grazia-prod.oss-ap-southeast-1.aliyuncs.com/resources/uid_100037804/1ca2ce55-b7b3-4d.png"],
+   logos: ["https://spb-t4n97b8c5i729t7x.supabase.opentrust.net/storage/v1/object/public/uploads/logos/trimmed_1783610955125_f929zd.png"],
   logoSeparatorColor: "#ffffff",
   logoStyle: "black-text",
 };

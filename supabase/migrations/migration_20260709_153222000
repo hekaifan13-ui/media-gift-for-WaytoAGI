@@ -1,0 +1,14 @@
+-- Replace old un-trimmed WaytoAGI logo URLs with trimmed versions across all projects.
+-- Uses a text-level replace on the whole data jsonb, then casts back.
+UPDATE projects
+SET data = REPLACE(
+  REPLACE(
+    data::text,
+    'https://grazia-prod.oss-ap-southeast-1.aliyuncs.com/resources/uid_100037804/1ca2ce55-b7b3-4d.png',
+    'https://spb-t4n97b8c5i729t7x.supabase.opentrust.net/storage/v1/object/public/uploads/logos/trimmed_1783610955125_f929zd.png'
+  ),
+  'https://grazia-prod.oss-ap-southeast-1.aliyuncs.com/resources/uid_100037804/50dadf1f-9b95-48.png',
+  'https://spb-t4n97b8c5i729t7x.supabase.opentrust.net/storage/v1/object/public/uploads/logos/trimmed_1783610955359_qev6s8.png'
+)::jsonb
+WHERE data::text LIKE '%grazia-prod.oss-ap-southeast-1.aliyuncs.com/resources/uid_100037804/1ca2ce55-b7b3-4d.png%'
+   OR data::text LIKE '%grazia-prod.oss-ap-southeast-1.aliyuncs.com/resources/uid_100037804/50dadf1f-9b95-48.png%';

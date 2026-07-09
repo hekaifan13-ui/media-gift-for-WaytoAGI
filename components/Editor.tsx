@@ -485,8 +485,8 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                           const newStyle = data.logoStyle === 'black-text' ? 'white-text' : 'black-text';
                           updateData('logoStyle', newStyle);
                           updateData('logos', [newStyle === 'black-text' 
-                            ? 'https://grazia-prod.oss-ap-southeast-1.aliyuncs.com/resources/uid_100037804/1ca2ce55-b7b3-4d.png' 
-                            : 'https://grazia-prod.oss-ap-southeast-1.aliyuncs.com/resources/uid_100037804/50dadf1f-9b95-48.png']);
+                            ? 'https://spb-t4n97b8c5i729t7x.supabase.opentrust.net/storage/v1/object/public/uploads/logos/trimmed_1783610955125_f929zd.png' 
+                            : 'https://spb-t4n97b8c5i729t7x.supabase.opentrust.net/storage/v1/object/public/uploads/logos/trimmed_1783610955359_qev6s8.png']);
                         }}
                         className="flex items-center gap-1.5 text-[10px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-full transition-all font-bold"
                       >
