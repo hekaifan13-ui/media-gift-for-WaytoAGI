@@ -14,7 +14,7 @@ import ImageCropper from './ImageCropper';
 import ImageGenModal from './ImageGenModal';
 import { motion, AnimatePresence } from 'motion/react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { createProject, updateProject, createGuest, uploadBase64 } from '../services/storageService';
+import { createProject, updateProject, createGuest, uploadBase64, createLogo } from '../services/storageService';
 import { trimTransparentEdges } from '../utils/trimImage';
 
 // Need to declare global htmlToImage from the script tag
@@ -54,6 +54,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
   const [titleInput, setTitleInput] = useState(projectTitle);
   const titleManuallyEdited = useRef(projectTitle !== 'Untitled Project');
   const [savingGuest, setSavingGuest] = useState<Record<string, 'saving' | 'saved'>>({});
+  const [savingLogo, setSavingLogo] = useState<Record<number, 'saving' | 'saved'>>({});
 
   // Auto-fill project title from description/topic if not manually set
   useEffect(() => {
@@ -251,6 +252,19 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
     } catch (err) {
       console.error('Failed to save guest:', err);
       setSavingGuest(prev => { const n = { ...prev }; delete n[author.id]; return n; });
+    }
+  };
+
+  const saveLogoToLibrary = async (logo: string, index: number) => {
+    setSavingLogo(prev => ({ ...prev, [index]: 'saving' }));
+    try {
+      const url = logo.startsWith('data:') ? await uploadBase64(logo, 'logos') : logo;
+      await createLogo(`Logo ${Date.now()}`, url);
+      setSavingLogo(prev => ({ ...prev, [index]: 'saved' }));
+      setTimeout(() => setSavingLogo(prev => { const n = { ...prev }; delete n[index]; return n; }), 2000);
+    } catch (err) {
+      console.error('Failed to save logo:', err);
+      setSavingLogo(prev => { const n = { ...prev }; delete n[index]; return n; });
     }
   };
 
@@ -550,6 +564,14 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                            <div className="flex-1 min-w-0 text-[11px] text-gray-400 truncate">
                               Logo {index + 1}
                            </div>
+                           <button
+                             onClick={() => saveLogoToLibrary(logo, index)}
+                             disabled={savingLogo[index] === 'saving'}
+                             title="Save to library"
+                             className={`p-1.5 rounded-lg transition-all shrink-0 disabled:opacity-40 ${savingLogo[index] === 'saved' ? 'text-green-500' : 'text-gray-300 hover:text-indigo-500 hover:bg-indigo-50'}`}
+                           >
+                              {savingLogo[index] === 'saving' ? <RefreshCw size={13} className="animate-spin" /> : savingLogo[index] === 'saved' ? <Check size={13} /> : <Save size={13} />}
+                           </button>
                            <button
                              onClick={() => removeLogo(index)}
                              title="Remove logo"
