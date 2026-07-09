@@ -85,6 +85,7 @@ const LogoImage = ({
   selected,
   onSelect,
   isDark,
+  heightClass = 'h-20',
 }: {
   logo: string;
   index: number;
@@ -94,6 +95,7 @@ const LogoImage = ({
   selected: boolean;
   onSelect: (index: number) => void;
   isDark?: boolean;
+  heightClass?: string;
 }) => {
   const logoScale = data.logoScales?.[index] ?? 1;
 
@@ -133,7 +135,7 @@ const LogoImage = ({
           </span>
         </div>
       )}
-      <img src={logo} alt="Logo" className="h-20 w-auto object-contain select-none pointer-events-none" />
+      <img src={logo} alt="Logo" className={`${heightClass} w-auto object-contain select-none pointer-events-none`} />
     </div>
   );
 };
@@ -657,6 +659,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
                   selected={selectedLogo === index}
                   onSelect={setSelectedLogo}
                   isDark={isDark}
+                  heightClass="h-10"
                 />
                 {index < (data.logos?.length || 0) - 1 && (
                   <span className="text-3xl font-light select-none pointer-events-none" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.3)' }}>丨</span>
