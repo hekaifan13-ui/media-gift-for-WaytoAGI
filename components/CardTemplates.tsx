@@ -589,9 +589,9 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
   const phase = exportAnimPhase !== undefined ? exportAnimPhase : livePhase;
   // Smooth 0..1..0 breathing curve
   const breath = (1 - Math.cos(phase * Math.PI * 2)) / 2; // 0 → 1 → 0
-  const topicGlow = 6 + breath * 26;            // shadow blur px
-  const topicGlowOpacity = 0.35 + breath * 0.5; // glow alpha
-  const topicScale = 1 + breath * 0.015;        // subtle pulse
+  const topicGlow = 4 + breath * 12;            // shadow blur px
+  const topicGlowOpacity = 0.2 + breath * 0.28; // glow alpha
+  const topicScale = 1;                          // no size breathing, glow only
   const liveDotScale = 0.85 + breath * 0.4;
   const liveDotOpacity = 0.55 + breath * 0.45;
 
