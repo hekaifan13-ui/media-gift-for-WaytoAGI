@@ -283,6 +283,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
                       onUpdateData={onUpdateData}
                       selected={selectedLogo === index}
                       onSelect={setSelectedLogo}
+                      heightClass="h-10"
                     />
                     {index < (data.logos?.length || 0) - 1 && (
                       <span className="text-2xl font-light opacity-80 select-none" style={{ color: data.logoSeparatorColor || '#ffffff' }}>丨</span>
