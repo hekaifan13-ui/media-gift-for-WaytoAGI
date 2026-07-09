@@ -644,24 +644,24 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
         <div className="absolute -top-40 -left-40 w-[900px] h-[900px] pointer-events-none"
           style={{
             background: `radial-gradient(circle at center, ${bgPreset.glowA} 0%, transparent 55%)`,
-            transform: `translate(${breath * 24}px, ${breath * 16}px)`,
-            opacity: 0.7 + breath * 0.3,
+            transform: `translate(${breath * 90}px, ${breath * 55}px)`,
+            opacity: 0.45 + breath * 0.55,
           }} />
       )}
       {bgPreset.glowB && (
         <div className="absolute -bottom-40 -right-40 w-[800px] h-[800px] pointer-events-none"
           style={{
             background: `radial-gradient(circle at center, ${bgPreset.glowB} 0%, transparent 55%)`,
-            transform: `translate(${-breath * 24}px, ${-breath * 16}px)`,
-            opacity: 1 - breath * 0.3,
+            transform: `translate(${-breath * 90}px, ${-breath * 55}px)`,
+            opacity: 1 - breath * 0.55,
           }} />
       )}
       {bgPreset.glowA && bgPreset.glowB && (
         <div className="absolute top-1/2 left-1/2 w-[1000px] h-[700px] pointer-events-none"
           style={{
-            background: `radial-gradient(circle at center, ${bgPreset.glowA.replace('0.', '0.0')} 0%, transparent 60%)`,
-            transform: `translate(-50%, -50%) translateX(${breath * 30 - 15}px)`,
-            opacity: 0.6 + breath * 0.4,
+            background: `radial-gradient(circle at center, ${bgPreset.glowA} 0%, transparent 60%)`,
+            transform: `translate(-50%, -50%) translate(${breath * 120 - 60}px, ${breath * 40 - 20}px)`,
+            opacity: 0.35 + breath * 0.5,
           }} />
       )}
 
