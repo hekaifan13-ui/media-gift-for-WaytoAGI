@@ -298,8 +298,10 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
         // Render to a canvas so we can guarantee a real transparent hole for the
         // visual frame (CSS mask is unreliable in html-to-image export).
         const canvas: HTMLCanvasElement = await htmlToImage.toCanvas(cardRef.current, options);
-        const pr = options.pixelRatio;
         const hole = cardRef.current.querySelector<HTMLElement>('[data-export-hole="true"]');
+        // Derive the real bitmap ratio from the produced canvas instead of trusting pixelRatio.
+        const pr = cardRef.current.offsetWidth ? (canvas.width / cardRef.current.offsetWidth) : options.pixelRatio;
+        console.log('[export] canvas', canvas.width, canvas.height, 'pr', pr, 'hole?', !!hole);
         if (hole) {
           const cardRect = cardRef.current.getBoundingClientRect();
           const holeRect = hole.getBoundingClientRect();
@@ -310,6 +312,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
           const w = (holeRect.width / scaleX) * pr;
           const h = (holeRect.height / scaleY) * pr;
           const r = 32 * pr; // matches rounded-[32px]
+          console.log('[export] hole rect', { x, y, w, h, scaleX, scaleY, cw: canvas.width, ch: canvas.height });
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.save();
