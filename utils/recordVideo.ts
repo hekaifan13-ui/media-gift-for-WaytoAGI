@@ -11,6 +11,8 @@ export interface RecordOptions {
   width: number;
   height: number;
   fps?: number;
+  /** Render scale multiplier for sharper output (default 2). */
+  pixelRatio?: number;
   /** One full breathing cycle duration in seconds (should match the template). */
   cycleSeconds?: number;
   /** How many cycles to record. */
@@ -37,10 +39,12 @@ function pickMimeType(): { mimeType: string; ext: string } {
 export async function recordAnimatedNode(opts: RecordOptions): Promise<{ blob: Blob; ext: string }> {
   const {
     node, setPhase, width, height,
-    fps = 30, cycleSeconds = 2.4, cycles = 2, onProgress,
+    fps = 30, pixelRatio = 2, cycleSeconds = 2.4, cycles = 2, onProgress,
   } = opts;
 
   const framesPerCycle = Math.round(fps * cycleSeconds);
+  const outW = Math.round(width * pixelRatio);
+  const outH = Math.round(height * pixelRatio);
 
   // 1. Pre-render one full cycle of frames to bitmaps (slow, but off real-time clock).
   const frames: HTMLCanvasElement[] = [];
@@ -52,7 +56,7 @@ export async function recordAnimatedNode(opts: RecordOptions): Promise<{ blob: B
     const canvas: HTMLCanvasElement = await htmlToImage.toCanvas(node, {
       width,
       height,
-      pixelRatio: 1,
+      pixelRatio,
       cacheBust: false,
       backgroundColor: '#ffffff',
       style: { transform: 'none', transformOrigin: 'top left', boxShadow: 'none' },
@@ -63,12 +67,16 @@ export async function recordAnimatedNode(opts: RecordOptions): Promise<{ blob: B
 
   // 2. Play frames back on a canvas in real time and record the stream.
   const out = document.createElement('canvas');
-  out.width = width;
-  out.height = height;
+  out.width = outW;
+  out.height = outH;
   const ctx = out.getContext('2d')!;
   const stream = out.captureStream(fps);
   const { mimeType, ext } = pickMimeType();
-  const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+  const bitsPerSecond = Math.min(Math.round(outW * outH * fps * 0.15), 60_000_000);
+  const recorder = new MediaRecorder(stream, {
+    ...(mimeType ? { mimeType } : {}),
+    videoBitsPerSecond: bitsPerSecond,
+  });
   const chunks: BlobPart[] = [];
   recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
 
@@ -89,12 +97,12 @@ export async function recordAnimatedNode(opts: RecordOptions): Promise<{ blob: B
       const frameIdx = Math.floor(elapsed / frameInterval);
       if (frameIdx >= totalFrames) {
         // draw final frame then finish
-        ctx.drawImage(frames[(totalFrames - 1) % framesPerCycle], 0, 0);
+        ctx.drawImage(frames[(totalFrames - 1) % framesPerCycle], 0, 0, outW, outH);
         resolve();
         return;
       }
       if (frameIdx !== lastDrawn) {
-        ctx.drawImage(frames[frameIdx % framesPerCycle], 0, 0);
+        ctx.drawImage(frames[frameIdx % framesPerCycle], 0, 0, outW, outH);
         lastDrawn = frameIdx;
         onProgress?.(0.7 + (frameIdx / totalFrames) * 0.3);
       }
