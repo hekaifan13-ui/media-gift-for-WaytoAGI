@@ -595,6 +595,21 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
   const liveDotScale = 0.85 + breath * 0.4;
   const liveDotOpacity = 0.55 + breath * 0.45;
 
+  // Background glow orbital motion — each blob drifts on its own circular path
+  // (sin/cos are perfectly loopable) with different phase / direction / speed
+  // so the whole field feels alive instead of a single synced pulse.
+  const tau = phase * Math.PI * 2;
+  const glowA_x = Math.sin(tau) * 110;
+  const glowA_y = Math.cos(tau) * 70;
+  const glowA_op = 0.4 + (Math.sin(tau) * 0.5 + 0.5) * 0.55;
+  const glowB_x = Math.sin(tau + 2.1) * 130;      // offset phase, reverse feel
+  const glowB_y = Math.sin(tau * 2 + 1.0) * 60;   // double frequency
+  const glowB_op = 0.4 + (Math.cos(tau) * 0.5 + 0.5) * 0.55;
+  const glowC_x = Math.cos(tau + 1.0) * 150;
+  const glowC_y = Math.sin(tau + 0.5) * 90;
+  const glowC_scale = 1 + (Math.sin(tau * 2) * 0.5 + 0.5) * 0.18;
+  const glowC_op = 0.3 + (Math.sin(tau + 3.14) * 0.5 + 0.5) * 0.55;
+
 
   // --- Logos Drag & Scale Logic ---
   const handleLogosMouseDown = (e: React.MouseEvent) => {
@@ -639,29 +654,29 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
         background: bgPreset.bg,
       }}
     >
-      {/* Radial glow accents — slow drift + breathing (oversized containers to avoid edge reveal) */}
+      {/* Radial glow accents — independent orbital drift (loopable) for a lively field */}
       {bgPreset.glowA && (
         <div className="absolute -top-40 -left-40 w-[900px] h-[900px] pointer-events-none"
           style={{
             background: `radial-gradient(circle at center, ${bgPreset.glowA} 0%, transparent 55%)`,
-            transform: `translate(${breath * 90}px, ${breath * 55}px)`,
-            opacity: 0.45 + breath * 0.55,
+            transform: `translate(${glowA_x}px, ${glowA_y}px)`,
+            opacity: glowA_op,
           }} />
       )}
       {bgPreset.glowB && (
         <div className="absolute -bottom-40 -right-40 w-[800px] h-[800px] pointer-events-none"
           style={{
             background: `radial-gradient(circle at center, ${bgPreset.glowB} 0%, transparent 55%)`,
-            transform: `translate(${-breath * 90}px, ${-breath * 55}px)`,
-            opacity: 1 - breath * 0.55,
+            transform: `translate(${glowB_x}px, ${glowB_y}px)`,
+            opacity: glowB_op,
           }} />
       )}
       {bgPreset.glowA && bgPreset.glowB && (
         <div className="absolute top-1/2 left-1/2 w-[1000px] h-[700px] pointer-events-none"
           style={{
-            background: `radial-gradient(circle at center, ${bgPreset.glowA} 0%, transparent 60%)`,
-            transform: `translate(-50%, -50%) translate(${breath * 120 - 60}px, ${breath * 40 - 20}px)`,
-            opacity: 0.35 + breath * 0.5,
+            background: `radial-gradient(circle at center, ${bgPreset.glowB} 0%, transparent 60%)`,
+            transform: `translate(-50%, -50%) translate(${glowC_x}px, ${glowC_y}px) scale(${glowC_scale})`,
+            opacity: glowC_op,
           }} />
       )}
 
