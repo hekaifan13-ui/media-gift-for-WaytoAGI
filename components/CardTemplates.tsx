@@ -593,12 +593,21 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
       // Convert screen px back into the card's own 1440x810 coordinate space
       const sx = rr.width ? 1440 / rr.width : 1;
       const sy = rr.height ? 810 / rr.height : 1;
-      setHole({
+      const next = {
         x: (fr.left - rr.left) * sx,
         y: (fr.top - rr.top) * sy,
         w: fr.width * sx,
         h: fr.height * sy,
-      });
+      };
+      setHole((prev) =>
+        prev &&
+        Math.abs(prev.x - next.x) < 0.5 &&
+        Math.abs(prev.y - next.y) < 0.5 &&
+        Math.abs(prev.w - next.w) < 0.5 &&
+        Math.abs(prev.h - next.h) < 0.5
+          ? prev
+          : next
+      );
     };
     measure();
     const ro = new ResizeObserver(measure);
