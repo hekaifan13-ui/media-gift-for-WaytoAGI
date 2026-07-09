@@ -53,7 +53,7 @@ export async function recordAnimatedNode(opts: RecordOptions): Promise<{ blob: B
       width,
       height,
       pixelRatio: 1,
-      cacheBust: true,
+      cacheBust: false,
       backgroundColor: '#ffffff',
       style: { transform: 'none', transformOrigin: 'top left', boxShadow: 'none' },
     });
