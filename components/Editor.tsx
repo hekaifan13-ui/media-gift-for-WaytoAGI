@@ -179,13 +179,6 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
      updateData('logoScales', newScales);
   };
 
-  const setLogoScale = (index: number, value: number) => {
-     const scales = [...(data.logoScales || [])];
-     while (scales.length < (data.logos?.length || 0)) scales.push(1);
-     scales[index] = Math.min(Math.max(value, 0.3), 4.0);
-     updateData('logoScales', scales);
-  };
-
   const moveLogo = (from: number, to: number) => {
      if (to < 0 || to >= (data.logos?.length || 0)) return;
      const newLogos = [...(data.logos || [])];
@@ -537,9 +530,8 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                   onPaste={handlePaste('logos')}
                   className="space-y-2 outline-none rounded-lg focus:ring-2 focus:ring-indigo-500/40"
                 >
-                   {/* Per-logo rows: drag handle · preview · size slider · reset · delete */}
+                   {/* Per-logo rows: drag handle · preview · delete */}
                    {data.logos.map((logo, index) => {
-                      const logoScale = data.logoScales?.[index] ?? 1;
                       return (
                         <div
                           key={index}
@@ -555,27 +547,9 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                            <div className="w-10 h-10 shrink-0 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center p-1">
                               <img src={logo} alt="Logo" className="max-w-full max-h-full object-contain" />
                            </div>
-                           <div className="flex-1 min-w-0 flex items-center gap-2">
-                              <input
-                                type="range"
-                                min={0.3}
-                                max={4}
-                                step={0.05}
-                                value={logoScale}
-                                onChange={(e) => setLogoScale(index, parseFloat(e.target.value))}
-                                className="flex-1 h-1.5 accent-indigo-500 cursor-pointer"
-                              />
-                              <span className="text-[10px] font-bold text-gray-400 w-9 text-right tabular-nums shrink-0">
-                                {Math.round(logoScale * 100)}%
-                              </span>
+                           <div className="flex-1 min-w-0 text-[11px] text-gray-400 truncate">
+                              Logo {index + 1}
                            </div>
-                           <button
-                             onClick={() => setLogoScale(index, 1)}
-                             title="Reset size"
-                             className="p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all shrink-0"
-                           >
-                              <RotateCcw size={13} />
-                           </button>
                            <button
                              onClick={() => removeLogo(index)}
                              title="Remove logo"
