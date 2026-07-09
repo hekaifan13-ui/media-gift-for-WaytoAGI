@@ -692,7 +692,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
   // the visual frame sits — so the background is "cut out" there (transparent on export).
   const holeMask = hole
     ? `url("data:image/svg+xml,${encodeURIComponent(
-        `<svg xmlns='http://www.w3.org/2000/svg' width='1440' height='810'><defs><mask id='m'><rect width='1440' height='810' fill='white'/><rect x='${hole.x}' y='${hole.y}' width='${hole.w}' height='${hole.h}' rx='32' ry='32' fill='black'/></mask></defs><rect width='1440' height='810' fill='white' mask='url(%23m)'/></svg>`
+        `<svg xmlns='http://www.w3.org/2000/svg' width='1440' height='810'><defs><mask id='m'><rect width='1440' height='810' fill='white'/><rect x='${hole.x}' y='${hole.y}' width='${hole.w}' height='${hole.h}' rx='32' ry='32' fill='black'/></mask></defs><rect width='1440' height='810' fill='white' mask='url(#m)'/></svg>`
       )}")`
     : undefined;
   const maskStyle: React.CSSProperties = holeMask
