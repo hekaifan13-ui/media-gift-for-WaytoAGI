@@ -68,6 +68,15 @@ const EffectOverlay = ({ effectId, emoji }: { effectId?: string; emoji?: string 
   );
 };
 
+// Convert a #rrggbb hex color to an rgba() string with the given alpha
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 interface TemplateProps {
   data: PostcardData;
   scale?: number;
@@ -554,6 +563,12 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
   const bgPreset = LIVESTREAM_BG_PRESETS[bgKey] ?? LIVESTREAM_BG_PRESETS['nebula-light'];
   const isDark = bgPreset.isDark;
 
+  // Accent color adapts to the selected background (falls back to indigo)
+  const accent = bgPreset.accent || '#6366f1';
+  const accentSoft = bgPreset.accentSoft || '#c7d2fe';
+  // Badge text color on the accent-filled "直播主题" label — dark accents get white text
+  const badgeBg = isDark ? hexToRgba(accent, 0.85) : accent;
+
   const [selectedLogo, setSelectedLogo] = useState<number | null>(null);
 
   // --- Live animation phase (0..1 looping). Driven by rAF in preview; overridden during video capture. ---
@@ -646,14 +661,19 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
       {/* Top Header Bar */}
       <div className="px-10 py-6 flex items-center justify-between z-20">
         <div
-          className={`flex items-center gap-6 rounded-3xl px-8 py-4 shadow-sm transition-colors duration-500 ${isDark ? 'bg-indigo-900/50 border border-indigo-500/30' : 'bg-[#c7d2fe]'}`}
+          className={`flex items-center gap-6 rounded-3xl px-8 py-4 shadow-sm transition-colors duration-500 ${isDark ? 'border' : ''}`}
           style={{
             transform: `scale(${topicScale})`,
             transformOrigin: 'left center',
-            boxShadow: `0 0 ${topicGlow}px rgba(99,102,241,${topicGlowOpacity})`,
+            background: isDark ? hexToRgba(accent, 0.18) : accentSoft,
+            borderColor: isDark ? hexToRgba(accent, 0.4) : 'transparent',
+            boxShadow: `0 0 ${topicGlow}px ${hexToRgba(accent, topicGlowOpacity)}`,
           }}
         >
-          <span className="flex items-center gap-2.5 bg-[#4338ca] text-white text-xl font-black px-5 py-2 rounded-2xl whitespace-nowrap">
+          <span
+            className="flex items-center gap-2.5 text-white text-xl font-black px-5 py-2 rounded-2xl whitespace-nowrap"
+            style={{ background: badgeBg }}
+          >
             <span
               className="w-2.5 h-2.5 rounded-full bg-[#ff3b3b]"
               style={{
@@ -721,23 +741,23 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
       {/* Main Content Area */}
       <div className="flex-1 flex px-10 pb-10 gap-8 min-h-0 relative z-10">
         {/* Left: Main Visual Area (Hollow 16:9 frame) — white interior, background shows outside */}
-        <div className="aspect-[16/9] h-full border-[3px] border-[#6366f1] rounded-[32px] relative shrink-0 z-10 overflow-hidden" style={{ background: isDark ? 'rgba(0,0,0,0.85)' : '#ffffff' }}>
+        <div className="aspect-[16/9] h-full border-[3px] rounded-[32px] relative shrink-0 z-10 overflow-hidden" style={{ background: isDark ? 'rgba(0,0,0,0.85)' : '#ffffff', borderColor: accent }}>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-             <ImageIcon size={80} className={`mb-4 opacity-[0.08] ${isDark ? 'text-white' : 'text-indigo-900'}`} />
+             <ImageIcon size={80} className="mb-4 opacity-[0.08]" style={{ color: isDark ? '#ffffff' : accent }} />
           </div>
           
           {/* Corner Accents */}
-          <div className="absolute top-5 left-5 w-10 h-10 border-t-[3px] border-l-[3px] border-indigo-400/60 rounded-tl-lg"></div>
-          <div className="absolute top-5 right-5 w-10 h-10 border-t-[3px] border-r-[3px] border-indigo-400/60 rounded-tr-lg"></div>
-          <div className="absolute bottom-5 left-5 w-10 h-10 border-b-[3px] border-l-[3px] border-indigo-400/60 rounded-bl-lg"></div>
-          <div className="absolute bottom-5 right-5 w-10 h-10 border-b-[3px] border-r-[3px] border-indigo-400/60 rounded-br-lg"></div>
+          <div className="absolute top-5 left-5 w-10 h-10 border-t-[3px] border-l-[3px] rounded-tl-lg" style={{ borderColor: hexToRgba(accent, 0.6) }}></div>
+          <div className="absolute top-5 right-5 w-10 h-10 border-t-[3px] border-r-[3px] rounded-tr-lg" style={{ borderColor: hexToRgba(accent, 0.6) }}></div>
+          <div className="absolute bottom-5 left-5 w-10 h-10 border-b-[3px] border-l-[3px] rounded-bl-lg" style={{ borderColor: hexToRgba(accent, 0.6) }}></div>
+          <div className="absolute bottom-5 right-5 w-10 h-10 border-b-[3px] border-r-[3px] rounded-br-lg" style={{ borderColor: hexToRgba(accent, 0.6) }}></div>
         </div>
 
         {/* Right: Sidebar */}
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
           <div className="flex-1 flex flex-col min-h-0">
-            <h2 className={`text-2xl font-black border-l-[8px] border-[#6366f1] pl-4 mb-6 shrink-0 transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`}>直播嘉宾</h2>
+            <h2 className={`text-2xl font-black border-l-[8px] pl-4 mb-6 shrink-0 transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`} style={{ borderColor: accent }}>直播嘉宾</h2>
             
             <div className="flex-1 flex flex-col justify-start gap-6">
               {data.authors && data.authors.length > 0 ? (
@@ -752,7 +772,8 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
                   {data.authors.map((guest) => (
                     <div key={guest.id} className="flex flex-col items-center text-center w-full">
                       <div 
-                        className={`w-24 h-24 rounded-full overflow-hidden border-[4px] shadow-md mb-3 shrink-0 cursor-pointer transition-colors duration-500 ${isDark ? 'border-white/10 bg-white/5 hover:border-white/30' : 'border-gray-100 bg-gray-200 hover:border-gray-300'}`}
+                        className={`w-24 h-24 rounded-full overflow-hidden border-[4px] shadow-md mb-3 shrink-0 cursor-pointer transition-colors duration-500 ${isDark ? 'bg-white/5' : 'bg-gray-200'}`}
+                        style={{ borderColor: isDark ? hexToRgba(accent, 0.25) : hexToRgba(accent, 0.35) }}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => {
                           e.preventDefault();
@@ -823,7 +844,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
 
           {/* QR Code Area */}
           <div className="mt-6 flex flex-col items-center shrink-0">
-            <div className={`w-36 h-36 p-3 rounded-2xl border-2 shadow-sm relative mb-3 transition-colors duration-500 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100'}`}>
+            <div className={`w-36 h-36 p-3 rounded-2xl border-2 shadow-sm relative mb-3 transition-colors duration-500 ${isDark ? 'bg-white/5' : 'bg-white'}`} style={{ borderColor: isDark ? hexToRgba(accent, 0.2) : hexToRgba(accent, 0.25) }}>
               {data.qrCode1 ? (
                 <img src={data.qrCode1} alt="QR" crossOrigin="anonymous" className="w-full h-full object-contain" style={{ transform: 'scale(1.15)', transformOrigin: 'center' }} />
               ) : (

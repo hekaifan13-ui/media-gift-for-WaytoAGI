@@ -7,6 +7,8 @@ export interface BgPreset {
   isDark: boolean;
   glowA?: string;  // top-left radial glow rgba
   glowB?: string;  // bottom-right radial glow rgba
+  accent?: string;     // main accent color (hex) — frames, badges, corners, glow
+  accentSoft?: string; // soft accent tint (hex) — used as topic-bar container fill in light mode
 }
 
 // Card 1 (Modern) footer background presets — all light tones
@@ -154,6 +156,8 @@ export const LIVESTREAM_BG_PRESETS: Record<string, BgPreset> = {
     shadowColor: '#f8f9fa',
     grainOpacity: 0,
     isDark: false,
+    accent: '#6366f1',
+    accentSoft: '#c7d2fe',
   },
   'solid-dark': {
     label: '深色',
@@ -161,6 +165,8 @@ export const LIVESTREAM_BG_PRESETS: Record<string, BgPreset> = {
     shadowColor: '#1a1a1a',
     grainOpacity: 0,
     isDark: true,
+    accent: '#818cf8',
+    accentSoft: '#c7d2fe',
   },
   'nebula-light': {
     label: '星云亮',
@@ -170,6 +176,8 @@ export const LIVESTREAM_BG_PRESETS: Record<string, BgPreset> = {
     isDark: false,
     glowA: 'rgba(167,139,250,0.32)',
     glowB: 'rgba(125,211,252,0.28)',
+    accent: '#8b5cf6',
+    accentSoft: '#ddd6fe',
   },
   'nebula-dark': {
     label: '星云暗',
@@ -179,6 +187,8 @@ export const LIVESTREAM_BG_PRESETS: Record<string, BgPreset> = {
     isDark: true,
     glowA: 'rgba(99,102,241,0.25)',
     glowB: 'rgba(56,189,248,0.16)',
+    accent: '#a78bfa',
+    accentSoft: '#ddd6fe',
   },
   'ocean': {
     label: '深海',
@@ -188,6 +198,8 @@ export const LIVESTREAM_BG_PRESETS: Record<string, BgPreset> = {
     isDark: true,
     glowA: 'rgba(14,165,233,0.22)',
     glowB: 'rgba(6,182,212,0.16)',
+    accent: '#38bdf8',
+    accentSoft: '#bae6fd',
   },
   'rainbow-light': {
     label: '彩虹',
@@ -197,6 +209,8 @@ export const LIVESTREAM_BG_PRESETS: Record<string, BgPreset> = {
     isDark: false,
     glowA: 'rgba(251,146,60,0.18)',
     glowB: 'rgba(167,139,250,0.18)',
+    accent: '#ec4899',
+    accentSoft: '#fbcfe8',
   },
   'aurora-pink': {
     label: '极光粉',
@@ -206,6 +220,8 @@ export const LIVESTREAM_BG_PRESETS: Record<string, BgPreset> = {
     isDark: false,
     glowA: 'rgba(217,70,239,0.22)',
     glowB: 'rgba(251,113,133,0.2)',
+    accent: '#d946ef',
+    accentSoft: '#f5d0fe',
   },
   'dusk': {
     label: '暮色',
@@ -215,5 +231,7 @@ export const LIVESTREAM_BG_PRESETS: Record<string, BgPreset> = {
     isDark: true,
     glowA: 'rgba(139,92,246,0.28)',
     glowB: 'rgba(167,139,250,0.18)',
+    accent: '#c4b5fd',
+    accentSoft: '#ddd6fe',
   },
 };
