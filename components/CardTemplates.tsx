@@ -135,7 +135,7 @@ const LogoImage = ({
           </span>
         </div>
       )}
-      <img src={logo} alt="Logo" className={`${heightClass} w-auto object-contain select-none pointer-events-none`} />
+      <img src={logo} alt="Logo" crossOrigin="anonymous" className={`${heightClass} w-auto object-contain select-none pointer-events-none`} />
     </div>
   );
 };
@@ -231,7 +231,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
        {/* TOP SECTION: Cover Image */}
        <div className={`w-full ${isFullPortrait ? 'h-full' : 'h-[940px]'} bg-gray-100 relative shrink-0 group overflow-hidden`}>
           {data.image ? (
-            <img src={data.image} alt="Cover" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <img src={data.image} alt="Cover" crossOrigin="anonymous" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
           ) : (
              <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 text-gray-300">
                <div className="border-2 border-dashed border-gray-300 rounded mb-2 w-20 h-28"></div>
@@ -350,7 +350,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
                           }}
                         >
                           {author.image ? (
-                            <img src={author.image} alt={author.name} className="w-full h-full object-cover" />
+                            <img src={author.image} alt={author.name} crossOrigin="anonymous" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-500">
                               <User size={20} />
@@ -418,7 +418,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
                <div className="flex flex-col items-center gap-4 justify-center h-full">
                   <div className="w-[156px] h-[156px] bg-white rounded-2xl border-2 border-white/60 p-4 flex items-center justify-center relative overflow-hidden shadow-md">
                      {data.qrCode1 ? (
-                        <img src={data.qrCode1} className="w-full h-full object-contain rounded-xl" style={{ transform: 'scale(1.15)', transformOrigin: 'center' }} alt="QR1" />
+                        <img src={data.qrCode1} crossOrigin="anonymous" className="w-full h-full object-contain rounded-xl" style={{ transform: 'scale(1.15)', transformOrigin: 'center' }} alt="QR1" />
                      ) : (
                         <QrCode className="text-gray-200" size={68} />
                      )}
@@ -432,7 +432,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
                <div className="flex flex-col items-center gap-4 justify-center h-full">
                   <div className="w-[156px] h-[156px] bg-white rounded-2xl border-2 border-white/60 p-4 flex items-center justify-center relative overflow-hidden shadow-md">
                      {data.qrCode2 ? (
-                        <img src={data.qrCode2} className="w-full h-full object-contain rounded-xl" style={{ transform: 'scale(1.15)', transformOrigin: 'center' }} alt="QR2" />
+                        <img src={data.qrCode2} crossOrigin="anonymous" className="w-full h-full object-contain rounded-xl" style={{ transform: 'scale(1.15)', transformOrigin: 'center' }} alt="QR2" />
                      ) : (
                         <QrCode className="text-gray-200" size={68} />
                      )}
@@ -510,7 +510,7 @@ const CodeTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 
                 <div className="flex-1 overflow-hidden relative flex flex-col">
                    <div className="w-full aspect-[4/3] bg-gray-100 relative group overflow-hidden shrink-0">
                       {data.image ? (
-                        <img src={data.image} alt="Preview" className="w-full h-full object-cover" />
+                        <img src={data.image} alt="Preview" crossOrigin="anonymous" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300">
                            <ImageIcon size={40} />
@@ -753,7 +753,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
                         }}
                       >
                         {guest.image ? (
-                          <img src={guest.image} alt={guest.name} className="w-full h-full object-cover" />
+                          <img src={guest.image} alt={guest.name} crossOrigin="anonymous" className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-400">
                             <User size={40} />
@@ -782,7 +782,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
           <div className="mt-6 flex flex-col items-center shrink-0">
             <div className={`w-36 h-36 p-3 rounded-2xl border-2 shadow-sm relative mb-3 transition-colors duration-500 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100'}`}>
               {data.qrCode1 ? (
-                <img src={data.qrCode1} alt="QR" className="w-full h-full object-contain" style={{ transform: 'scale(1.15)', transformOrigin: 'center' }} />
+                <img src={data.qrCode1} alt="QR" crossOrigin="anonymous" className="w-full h-full object-contain" style={{ transform: 'scale(1.15)', transformOrigin: 'center' }} />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <QrCode size={66} className={isDark ? 'text-gray-600' : 'text-gray-100'} />
