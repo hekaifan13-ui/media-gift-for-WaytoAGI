@@ -75,6 +75,70 @@ interface TemplateProps {
   isExporting?: boolean;
 }
 
+// Individual logo image with click-to-select + wheel-to-scale (independent per logo)
+const LogoImage = ({
+  logo,
+  index,
+  data,
+  isExporting,
+  onUpdateData,
+  selected,
+  onSelect,
+  isDark,
+}: {
+  logo: string;
+  index: number;
+  data: PostcardData;
+  isExporting: boolean;
+  onUpdateData?: (key: keyof PostcardData, value: any) => void;
+  selected: boolean;
+  onSelect: (index: number) => void;
+  isDark?: boolean;
+}) => {
+  const logoScale = data.logoScales?.[index] ?? 1;
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (isExporting || !onUpdateData || !selected) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const scales = [...(data.logoScales || [])];
+    while (scales.length < (data.logos?.length || 0)) scales.push(1);
+    const delta = e.deltaY > 0 ? -0.05 : 0.05;
+    scales[index] = Math.min(Math.max((scales[index] ?? 1) + delta, 0.3), 4.0);
+    onUpdateData('logoScales', scales);
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isExporting) return;
+    e.stopPropagation();
+    onSelect(index);
+  };
+
+  return (
+    <div
+      className={`relative ${isExporting ? '' : 'cursor-pointer'}`}
+      style={{ transform: `scale(${logoScale})`, transformOrigin: 'center' }}
+      onWheel={handleWheel}
+      onMouseDown={handleClick}
+    >
+      {!isExporting && selected && (
+        <div
+          className="absolute -inset-1.5 border-2 border-dashed rounded-md pointer-events-none flex items-start justify-center"
+          style={{ borderColor: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(99,102,241,0.8)' }}
+        >
+          <span
+            className={`absolute -top-5 text-[9px] px-1.5 py-0.5 rounded whitespace-nowrap ${isDark ? 'bg-white/25 text-white' : 'bg-indigo-500 text-white'}`}
+          >
+            Scroll to resize
+          </span>
+        </div>
+      )}
+      <img src={logo} alt="Logo" className="h-20 w-auto object-contain select-none pointer-events-none" />
+    </div>
+  );
+};
+
+
 // 1. Modern (10:16 Vertical OR 3:4 Portrait Full)
 const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 1, onUpdateData, isExporting = false }, ref) => {
   const isFullPortrait = data.modernLayout === 'portrait-full';
@@ -82,6 +146,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
 
   // --- Authors Drag & Scale Logic ---
   const [isDraggingAuthors, setIsDraggingAuthors] = useState(false);
+  const [selectedLogo, setSelectedLogo] = useState<number | null>(null);
   
   const handleAuthorsMouseDown = (e: React.MouseEvent) => {
     if (isExporting || !onUpdateData) return;
@@ -190,14 +255,22 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
               {!isExporting && (
                 <div className="absolute -inset-2 border border-dashed border-white/40 rounded-lg opacity-0 group-hover/logos:opacity-100 transition-opacity pointer-events-none flex items-start justify-end pr-1 pt-1">
                   <div className="bg-black/50 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-md scale-[0.8] origin-top-right whitespace-nowrap">
-                    Drag to move · Scroll to scale
+                    Drag group · Click a logo to resize it
                   </div>
                 </div>
               )}
               <div className="flex items-center gap-4">
                 {data.logos.map((logo, index) => (
                   <React.Fragment key={index}>
-                    <img src={logo} alt="Logo" className="h-20 w-auto object-contain select-none pointer-events-none" />
+                    <LogoImage
+                      logo={logo}
+                      index={index}
+                      data={data}
+                      isExporting={isExporting}
+                      onUpdateData={onUpdateData}
+                      selected={selectedLogo === index}
+                      onSelect={setSelectedLogo}
+                    />
                     {index < (data.logos?.length || 0) - 1 && (
                       <span className="text-2xl font-light opacity-80 select-none" style={{ color: data.logoSeparatorColor || '#ffffff' }}>丨</span>
                     )}
@@ -477,6 +550,8 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
   const bgPreset = LIVESTREAM_BG_PRESETS[bgKey] ?? LIVESTREAM_BG_PRESETS['nebula-light'];
   const isDark = bgPreset.isDark;
 
+  const [selectedLogo, setSelectedLogo] = useState<number | null>(null);
+
   // --- Logos Drag & Scale Logic ---
   const handleLogosMouseDown = (e: React.MouseEvent) => {
     if (isExporting || !onUpdateData) return;
@@ -565,14 +640,23 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
           {!isExporting && (
             <div className="absolute -inset-2 border border-dashed rounded-lg opacity-0 group-hover/logos:opacity-100 transition-opacity pointer-events-none flex items-start justify-end pr-1 pt-1" style={{ borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)' }}>
               <div className={`text-[10px] px-2 py-0.5 rounded backdrop-blur-md scale-[0.8] origin-top-right whitespace-nowrap ${isDark ? 'bg-white/20 text-white' : 'bg-black/10 text-gray-700'}`}>
-                Drag · Scroll
+                Drag · Click a logo to resize it
               </div>
             </div>
           )}
           {data.logos && data.logos.length > 0 ? (
             data.logos.map((logo, index) => (
               <React.Fragment key={index}>
-                <img src={logo} alt="Logo" className="h-20 w-auto object-contain select-none pointer-events-none" />
+                <LogoImage
+                  logo={logo}
+                  index={index}
+                  data={data}
+                  isExporting={isExporting}
+                  onUpdateData={onUpdateData}
+                  selected={selectedLogo === index}
+                  onSelect={setSelectedLogo}
+                  isDark={isDark}
+                />
                 {index < (data.logos?.length || 0) - 1 && (
                   <span className="text-3xl font-light select-none pointer-events-none" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.3)' }}>丨</span>
                 )}
