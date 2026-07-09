@@ -639,18 +639,30 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
         background: bgPreset.bg,
       }}
     >
-      {/* Radial glow accents */}
+      {/* Radial glow accents — slow drift + breathing */}
       {bgPreset.glowA && (
         <div className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none"
-          style={{ background: `radial-gradient(ellipse at top left, ${bgPreset.glowA} 0%, transparent 65%)` }} />
+          style={{
+            background: `radial-gradient(ellipse at top left, ${bgPreset.glowA} 0%, transparent 65%)`,
+            transform: `translate(${breath * 30 - 15}px, ${breath * 20}px)`,
+            opacity: 0.7 + breath * 0.3,
+          }} />
       )}
       {bgPreset.glowB && (
         <div className="absolute bottom-0 right-0 w-[500px] h-[500px] pointer-events-none"
-          style={{ background: `radial-gradient(ellipse at bottom right, ${bgPreset.glowB} 0%, transparent 65%)` }} />
+          style={{
+            background: `radial-gradient(ellipse at bottom right, ${bgPreset.glowB} 0%, transparent 65%)`,
+            transform: `translate(${15 - breath * 30}px, ${-breath * 20}px)`,
+            opacity: 1 - breath * 0.3,
+          }} />
       )}
       {bgPreset.glowA && bgPreset.glowB && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] pointer-events-none"
-          style={{ background: `radial-gradient(ellipse, ${bgPreset.glowA.replace('0.', '0.0')} 0%, transparent 70%)` }} />
+          style={{
+            background: `radial-gradient(ellipse, ${bgPreset.glowA.replace('0.', '0.0')} 0%, transparent 70%)`,
+            transform: `translate(-50%, -50%) translateX(${breath * 40 - 20}px) scale(${1 + breath * 0.08})`,
+            opacity: 0.6 + breath * 0.4,
+          }} />
       )}
 
       {/* Grain overlay */}
