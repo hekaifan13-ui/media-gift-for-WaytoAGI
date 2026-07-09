@@ -1,5 +1,5 @@
 
-import React, { forwardRef, useState, useMemo, useEffect } from 'react';
+import React, { forwardRef, useState, useMemo, useEffect, useRef, useLayoutEffect } from 'react';
 import { PostcardData, TemplateId } from '../types';
 import { Feather, FileCode, GitBranch, Search, Settings, Layout, QrCode, User, Image as ImageIcon } from 'lucide-react';
 import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS } from './bgPresets';
@@ -572,6 +572,41 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
 
   const [selectedLogo, setSelectedLogo] = useState<number | null>(null);
 
+  // Refs for punching a transparent hole in the background where the visual frame sits
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const [hole, setHole] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+
+  const setRefs = (el: HTMLDivElement | null) => {
+    rootRef.current = el;
+    if (typeof ref === 'function') ref(el);
+    else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = el;
+  };
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const root = rootRef.current;
+      const frame = frameRef.current;
+      if (!root || !frame) return;
+      const rr = root.getBoundingClientRect();
+      const fr = frame.getBoundingClientRect();
+      // Convert screen px back into the card's own 1440x810 coordinate space
+      const sx = rr.width ? 1440 / rr.width : 1;
+      const sy = rr.height ? 810 / rr.height : 1;
+      setHole({
+        x: (fr.left - rr.left) * sx,
+        y: (fr.top - rr.top) * sy,
+        w: fr.width * sx,
+        h: fr.height * sy,
+      });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (rootRef.current) ro.observe(rootRef.current);
+    if (frameRef.current) ro.observe(frameRef.current);
+    return () => ro.disconnect();
+  });
+
   // --- Live animation phase (0..1 looping). Driven by rAF in preview; overridden during video capture. ---
   const [livePhase, setLivePhase] = useState(0);
   useEffect(() => {
@@ -644,44 +679,62 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
     onUpdateData('logosLayout', { ...layout, scale: newScale });
   };
 
+  // SVG mask that keeps the whole card visible EXCEPT a rounded-rect hole where
+  // the visual frame sits — so the background is "cut out" there (transparent on export).
+  const holeMask = hole
+    ? `url("data:image/svg+xml,${encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' width='1440' height='810'><defs><mask id='m'><rect width='1440' height='810' fill='white'/><rect x='${hole.x}' y='${hole.y}' width='${hole.w}' height='${hole.h}' rx='32' ry='32' fill='black'/></mask></defs><rect width='1440' height='810' fill='white' mask='url(%23m)'/></svg>`
+      )}")`
+    : undefined;
+  const maskStyle: React.CSSProperties = holeMask
+    ? {
+        WebkitMaskImage: holeMask,
+        maskImage: holeMask,
+        WebkitMaskSize: '100% 100%',
+        maskSize: '100% 100%',
+      }
+    : {};
+
   return (
     <div 
-      ref={ref} 
+      ref={setRefs} 
       className={`w-[1440px] h-[810px] shadow-2xl relative overflow-hidden flex flex-col font-sans transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`} 
       style={{ 
         transform: `scale(${scale})`, 
         transformOrigin: 'top left',
-        background: bgPreset.bg,
       }}
     >
-      {/* Radial glow accents — independent orbital drift (loopable) for a lively field */}
-      {bgPreset.glowA && (
-        <div className="absolute -top-40 -left-40 w-[900px] h-[900px] pointer-events-none"
-          style={{
-            background: `radial-gradient(circle at center, ${bgPreset.glowA} 0%, transparent 55%)`,
-            transform: `translate(${glowA_x}px, ${glowA_y}px)`,
-            opacity: glowA_op,
-          }} />
-      )}
-      {bgPreset.glowB && (
-        <div className="absolute -bottom-40 -right-40 w-[800px] h-[800px] pointer-events-none"
-          style={{
-            background: `radial-gradient(circle at center, ${bgPreset.glowB} 0%, transparent 55%)`,
-            transform: `translate(${glowB_x}px, ${glowB_y}px)`,
-            opacity: glowB_op,
-          }} />
-      )}
-      {bgPreset.glowA && bgPreset.glowB && (
-        <div className="absolute top-1/2 left-1/2 w-[1000px] h-[700px] pointer-events-none"
-          style={{
-            background: `radial-gradient(circle at center, ${bgPreset.glowB} 0%, transparent 60%)`,
-            transform: `translate(-50%, -50%) translate(${glowC_x}px, ${glowC_y}px) scale(${glowC_scale})`,
-            opacity: glowC_op,
-          }} />
-      )}
+      {/* Background + glows + grain, all inside a masked layer so the visual frame area is cut out (transparent) */}
+      <div className="absolute inset-0 z-0" style={{ background: bgPreset.bg, ...maskStyle }}>
+        {/* Radial glow accents — independent orbital drift (loopable) for a lively field */}
+        {bgPreset.glowA && (
+          <div className="absolute -top-40 -left-40 w-[900px] h-[900px] pointer-events-none"
+            style={{
+              background: `radial-gradient(circle at center, ${bgPreset.glowA} 0%, transparent 55%)`,
+              transform: `translate(${glowA_x}px, ${glowA_y}px)`,
+              opacity: glowA_op,
+            }} />
+        )}
+        {bgPreset.glowB && (
+          <div className="absolute -bottom-40 -right-40 w-[800px] h-[800px] pointer-events-none"
+            style={{
+              background: `radial-gradient(circle at center, ${bgPreset.glowB} 0%, transparent 55%)`,
+              transform: `translate(${glowB_x}px, ${glowB_y}px)`,
+              opacity: glowB_op,
+            }} />
+        )}
+        {bgPreset.glowA && bgPreset.glowB && (
+          <div className="absolute top-1/2 left-1/2 w-[1000px] h-[700px] pointer-events-none"
+            style={{
+              background: `radial-gradient(circle at center, ${bgPreset.glowB} 0%, transparent 60%)`,
+              transform: `translate(-50%, -50%) translate(${glowC_x}px, ${glowC_y}px) scale(${glowC_scale})`,
+              opacity: glowC_op,
+            }} />
+        )}
 
-      {/* Grain overlay */}
-      {bgPreset.grainOpacity > 0 && <GrainOverlay opacity={bgPreset.grainOpacity} />}
+        {/* Grain overlay */}
+        {bgPreset.grainOpacity > 0 && <GrainOverlay opacity={bgPreset.grainOpacity} />}
+      </div>
 
       {/* Effect overlay (holographic, foil, stamp) */}
       <EffectOverlay effectId={data.overlayEffect} emoji={data.emojiPattern} />
@@ -768,8 +821,8 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
 
       {/* Main Content Area */}
       <div className="flex-1 flex px-10 pb-10 gap-8 min-h-0 relative z-10">
-        {/* Left: Main Visual Area (Hollow 16:9 frame) — transparent interior, background shows through */}
-        <div className="aspect-[16/9] h-full border-[3px] rounded-[32px] relative shrink-0 z-10 overflow-hidden" style={{ background: 'transparent', borderColor: accent }}>
+        {/* Left: Main Visual Area (Hollow 16:9 frame) — transparent interior, background cut out behind it */}
+        <div ref={frameRef} className="aspect-[16/9] h-full border-[3px] rounded-[32px] relative shrink-0 z-10 overflow-hidden" style={{ background: 'transparent', borderColor: accent }}>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
              <ImageIcon size={80} className="mb-4 opacity-[0.08]" style={{ color: isDark ? '#ffffff' : accent }} />
