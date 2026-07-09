@@ -7,7 +7,7 @@ import { OVERLAY_EFFECTS } from './overlayEffects';
 import { 
   Image as ImageIcon, Download, ArrowLeft, Wand2, RefreshCw, Save, ExternalLink,
   Calendar, MapPin, User, AlignLeft, UploadCloud, QrCode, Type, Sparkles, Plus, Trash2, Edit2, Hexagon, Layout,
-  Maximize2, Minimize2, MousePointer2, Move, ZoomIn, ZoomOut, RotateCcw, Check, Users, Layers
+  Maximize2, Minimize2, MousePointer2, Move, ZoomIn, ZoomOut, RotateCcw, Check, Users, Layers, GripVertical, ClipboardPaste
 } from 'lucide-react';
 import AIGenerator from './AIGenerator';
 import ImageCropper from './ImageCropper';
@@ -69,6 +69,9 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
   const qr1InputRef = useRef<HTMLInputElement>(null);
   const qr2InputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+
+  // Logo drag-reorder state
+  const [dragLogoIndex, setDragLogoIndex] = useState<number | null>(null);
 
   const ActiveTemplate = getTemplateComponent(data.templateId);
 
@@ -168,6 +171,29 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
      const newLogos = [...(data.logos || [])];
      newLogos.splice(index, 1);
      updateData('logos', newLogos);
+     const newScales = [...(data.logoScales || [])];
+     newScales.splice(index, 1);
+     updateData('logoScales', newScales);
+  };
+
+  const setLogoScale = (index: number, value: number) => {
+     const scales = [...(data.logoScales || [])];
+     while (scales.length < (data.logos?.length || 0)) scales.push(1);
+     scales[index] = Math.min(Math.max(value, 0.3), 4.0);
+     updateData('logoScales', scales);
+  };
+
+  const moveLogo = (from: number, to: number) => {
+     if (to < 0 || to >= (data.logos?.length || 0)) return;
+     const newLogos = [...(data.logos || [])];
+     const [movedLogo] = newLogos.splice(from, 1);
+     newLogos.splice(to, 0, movedLogo);
+     updateData('logos', newLogos);
+     const scales = [...(data.logoScales || [])];
+     while (scales.length < (data.logos?.length || 0)) scales.push(1);
+     const [movedScale] = scales.splice(from, 1);
+     scales.splice(to, 0, movedScale ?? 1);
+     updateData('logoScales', scales);
   };
 
   const onDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -476,35 +502,120 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                    <input type="file" ref={logoInputRef} onChange={handleLogoUpload} accept="image/*" className="hidden" />
                 </div>
              </div>
-             <div 
-               tabIndex={0} 
-               onPaste={handlePaste('logos')}
-               className="flex flex-wrap gap-3 p-1 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/50"
-             >
-                {(!data.logos || data.logos.length === 0) ? (
-                   <div className="w-full p-4 border border-dashed border-gray-200 rounded-lg text-center bg-gray-50/50">
-                      <p className="text-[10px] text-gray-400 italic">No logos uploaded (Click button or Paste here)</p>
+             {(!data.logos || data.logos.length === 0) ? (
+                /* Unified empty state: 3 clear entries */
+                <div
+                  tabIndex={0}
+                  onPaste={handlePaste('logos')}
+                  className="grid grid-cols-3 gap-2 outline-none rounded-lg focus:ring-2 focus:ring-indigo-500/40"
+                >
+                   <button
+                     onClick={() => logoInputRef.current?.click()}
+                     className="flex flex-col items-center justify-center gap-1.5 py-4 border border-dashed border-gray-200 rounded-xl bg-gray-50/50 hover:bg-indigo-50 hover:border-indigo-300 transition-all text-gray-500 hover:text-indigo-600"
+                   >
+                     <UploadCloud size={18} />
+                     <span className="text-[10px] font-bold">Upload</span>
+                   </button>
+                   <div className="flex flex-col items-center justify-center gap-1.5 py-4 border border-dashed border-gray-200 rounded-xl bg-gray-50/50 text-gray-400">
+                     <ClipboardPaste size={18} />
+                     <span className="text-[10px] font-bold">Paste here</span>
                    </div>
-                ) : (
-                   data.logos.map((logo, index) => (
-                      <div key={index} className="relative w-16 h-16 bg-white border border-gray-200 rounded-lg flex items-center justify-center p-2 shadow-sm group">
-                         <img src={logo} alt="Logo" className="max-w-full max-h-full object-contain" />
-                         <button onClick={() => removeLogo(index)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
-                            <Trash2 size={10} />
-                         </button>
-                      </div>
-                   ))
-                )}
-             </div>
-             {/* Open Logo Library button */}
-             <button
-               onClick={onGoToLogoLibrary}
-               className="w-full flex items-center justify-center gap-2 mt-3 py-2.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 rounded-xl text-xs font-bold text-gray-600 hover:text-indigo-700 transition-all"
-             >
-               <Layers size={14} />
-               Open Logo Library
-               <ExternalLink size={12} className="opacity-50" />
-             </button>
+                   <button
+                     onClick={onGoToLogoLibrary}
+                     className="flex flex-col items-center justify-center gap-1.5 py-4 border border-dashed border-gray-200 rounded-xl bg-gray-50/50 hover:bg-indigo-50 hover:border-indigo-300 transition-all text-gray-500 hover:text-indigo-600"
+                   >
+                     <Layers size={18} />
+                     <span className="text-[10px] font-bold">Library</span>
+                   </button>
+                </div>
+             ) : (
+                <div
+                  tabIndex={0}
+                  onPaste={handlePaste('logos')}
+                  className="space-y-2 outline-none rounded-lg focus:ring-2 focus:ring-indigo-500/40"
+                >
+                   {/* Per-logo rows: drag handle · preview · size slider · reset · delete */}
+                   {data.logos.map((logo, index) => {
+                      const logoScale = data.logoScales?.[index] ?? 1;
+                      return (
+                        <div
+                          key={index}
+                          draggable
+                          onDragStart={() => setDragLogoIndex(index)}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={() => { if (dragLogoIndex !== null) moveLogo(dragLogoIndex, index); setDragLogoIndex(null); }}
+                          className={`flex items-center gap-2 bg-white border rounded-xl p-2 shadow-sm transition-all ${dragLogoIndex === index ? 'opacity-40 border-indigo-300' : 'border-gray-200'}`}
+                        >
+                           <div className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 shrink-0">
+                              <GripVertical size={14} />
+                           </div>
+                           <div className="w-10 h-10 shrink-0 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center p-1">
+                              <img src={logo} alt="Logo" className="max-w-full max-h-full object-contain" />
+                           </div>
+                           <div className="flex-1 min-w-0 flex items-center gap-2">
+                              <input
+                                type="range"
+                                min={0.3}
+                                max={4}
+                                step={0.05}
+                                value={logoScale}
+                                onChange={(e) => setLogoScale(index, parseFloat(e.target.value))}
+                                className="flex-1 h-1.5 accent-indigo-500 cursor-pointer"
+                              />
+                              <span className="text-[10px] font-bold text-gray-400 w-9 text-right tabular-nums shrink-0">
+                                {Math.round(logoScale * 100)}%
+                              </span>
+                           </div>
+                           <button
+                             onClick={() => setLogoScale(index, 1)}
+                             title="Reset size"
+                             className="p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all shrink-0"
+                           >
+                              <RotateCcw size={13} />
+                           </button>
+                           <button
+                             onClick={() => removeLogo(index)}
+                             title="Remove logo"
+                             className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all shrink-0"
+                           >
+                              <Trash2 size={13} />
+                           </button>
+                        </div>
+                      );
+                   })}
+
+                   {/* Logo gap slider */}
+                   {data.logos.length > 1 && (
+                     <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 mt-1">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0">Spacing</span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={64}
+                          step={2}
+                          value={data.logoGap ?? 16}
+                          onChange={(e) => updateData('logoGap', parseInt(e.target.value))}
+                          className="flex-1 h-1.5 accent-indigo-500 cursor-pointer"
+                        />
+                        <span className="text-[10px] font-bold text-gray-400 w-9 text-right tabular-nums shrink-0">
+                          {data.logoGap ?? 16}px
+                        </span>
+                     </div>
+                   )}
+                </div>
+             )}
+             <input type="file" ref={logoInputRef} onChange={handleLogoUpload} accept="image/*" className="hidden" />
+             {/* Open Logo Library button (only when logos exist; empty state has its own) */}
+             {data.logos && data.logos.length > 0 && (
+               <button
+                 onClick={onGoToLogoLibrary}
+                 className="w-full flex items-center justify-center gap-2 mt-3 py-2.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 rounded-xl text-xs font-bold text-gray-600 hover:text-indigo-700 transition-all"
+               >
+                 <Layers size={14} />
+                 Open Logo Library
+                 <ExternalLink size={12} className="opacity-50" />
+               </button>
+             )}
           </section>
 
           {data.templateId === TemplateId.LIVESTREAM && (

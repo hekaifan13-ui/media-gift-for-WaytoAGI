@@ -259,7 +259,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
                   </div>
                 </div>
               )}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center" style={{ gap: `${data.logoGap ?? 16}px` }}>
                 {data.logos.map((logo, index) => (
                   <React.Fragment key={index}>
                     <LogoImage
@@ -629,8 +629,9 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
         
         {/* Logo Area - all logos with separators, draggable, contrast-adapted */}
         <div 
-          className={`flex items-center gap-4 ${isExporting ? '' : 'cursor-move group/logos'}`}
+          className={`flex items-center ${isExporting ? '' : 'cursor-move group/logos'}`}
           style={{
+            gap: `${data.logoGap ?? 16}px`,
             transform: `translate(${data.logosLayout?.x || 0}px, ${data.logosLayout?.y || 0}px) scale(${data.logosLayout?.scale || 1})`,
             transformOrigin: 'center',
           }}

@@ -44,6 +44,7 @@ export interface PostcardData {
   logos?: string[];
   logosLayout?: { x: number; y: number; scale: number };
   logoScales?: number[];   // per-logo individual scale multiplier
+  logoGap?: number;        // gap between logos in px
   logoSeparatorColor?: string;
   logoStyle?: 'white-text' | 'black-text';
   liveTopic?: string;
