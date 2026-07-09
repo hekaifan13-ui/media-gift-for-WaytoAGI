@@ -312,7 +312,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
           const w = (holeRect.width / scaleX) * pr;
           const h = (holeRect.height / scaleY) * pr;
           const r = 32 * pr; // matches rounded-[32px]
-          console.log('[export] hole rect', { x, y, w, h, scaleX, scaleY, cw: canvas.width, ch: canvas.height });
+          console.log('[export] hole rect', `x=${x} y=${y} w=${w} h=${h} sx=${scaleX} sy=${scaleY} cw=${canvas.width} ch=${canvas.height}`);
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.save();
