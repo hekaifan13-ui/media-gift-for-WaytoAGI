@@ -1,5 +1,5 @@
 
-import React, { forwardRef, useState, useMemo } from 'react';
+import React, { forwardRef, useState, useMemo, useEffect } from 'react';
 import { PostcardData, TemplateId } from '../types';
 import { Feather, FileCode, GitBranch, Search, Settings, Layout, QrCode, User, Image as ImageIcon } from 'lucide-react';
 import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS } from './bgPresets';
@@ -73,6 +73,8 @@ interface TemplateProps {
   scale?: number;
   onUpdateData?: (key: keyof PostcardData, value: any) => void;
   isExporting?: boolean;
+  /** When set (0..1), forces a deterministic animation phase — used for video frame capture */
+  exportAnimPhase?: number;
 }
 
 // Individual logo image with click-to-select + wheel-to-scale (independent per logo)
@@ -546,13 +548,37 @@ const CodeTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 
 });
 
 // 3. Livestream Template
-const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 1, onUpdateData, isExporting = false }, ref) => {
+const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 1, onUpdateData, isExporting = false, exportAnimPhase }, ref) => {
   // Resolve background preset — fallback to theme-based solid for backwards compat
   const bgKey = data.bgStyle || (data.theme === 'dark' ? 'solid-dark' : 'nebula-light');
   const bgPreset = LIVESTREAM_BG_PRESETS[bgKey] ?? LIVESTREAM_BG_PRESETS['nebula-light'];
   const isDark = bgPreset.isDark;
 
   const [selectedLogo, setSelectedLogo] = useState<number | null>(null);
+
+  // --- Live animation phase (0..1 looping). Driven by rAF in preview; overridden during video capture. ---
+  const [livePhase, setLivePhase] = useState(0);
+  useEffect(() => {
+    if (exportAnimPhase !== undefined) return; // deterministic capture mode
+    let raf = 0;
+    const loop = (t: number) => {
+      // 2.4s breathing cycle
+      setLivePhase((t % 2400) / 2400);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [exportAnimPhase]);
+
+  const phase = exportAnimPhase !== undefined ? exportAnimPhase : livePhase;
+  // Smooth 0..1..0 breathing curve
+  const breath = (1 - Math.cos(phase * Math.PI * 2)) / 2; // 0 → 1 → 0
+  const topicGlow = 6 + breath * 26;            // shadow blur px
+  const topicGlowOpacity = 0.35 + breath * 0.5; // glow alpha
+  const topicScale = 1 + breath * 0.015;        // subtle pulse
+  const liveDotScale = 0.85 + breath * 0.4;
+  const liveDotOpacity = 0.55 + breath * 0.45;
+
 
   // --- Logos Drag & Scale Logic ---
   const handleLogosMouseDown = (e: React.MouseEvent) => {
@@ -619,8 +645,25 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
 
       {/* Top Header Bar */}
       <div className="px-10 py-6 flex items-center justify-between z-20">
-        <div className={`flex items-center gap-6 rounded-3xl px-8 py-4 shadow-sm transition-colors duration-500 ${isDark ? 'bg-indigo-900/50 border border-indigo-500/30' : 'bg-[#c7d2fe]'}`}>
-          <span className="bg-[#4338ca] text-white text-xl font-black px-5 py-2 rounded-2xl whitespace-nowrap">直播主题</span>
+        <div
+          className={`flex items-center gap-6 rounded-3xl px-8 py-4 shadow-sm transition-colors duration-500 ${isDark ? 'bg-indigo-900/50 border border-indigo-500/30' : 'bg-[#c7d2fe]'}`}
+          style={{
+            transform: `scale(${topicScale})`,
+            transformOrigin: 'left center',
+            boxShadow: `0 0 ${topicGlow}px rgba(99,102,241,${topicGlowOpacity})`,
+          }}
+        >
+          <span className="flex items-center gap-2.5 bg-[#4338ca] text-white text-xl font-black px-5 py-2 rounded-2xl whitespace-nowrap">
+            <span
+              className="w-2.5 h-2.5 rounded-full bg-[#ff3b3b]"
+              style={{
+                transform: `scale(${liveDotScale})`,
+                opacity: liveDotOpacity,
+                boxShadow: `0 0 ${4 + breath * 10}px rgba(255,59,59,${0.6 * liveDotOpacity + 0.3})`,
+              }}
+            />
+            直播主题
+          </span>
           <h1 
             className={`text-4xl font-black truncate max-w-[1000px] transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`}
             style={{ letterSpacing: `${data.liveTopicSpacing ?? 0}em` }}

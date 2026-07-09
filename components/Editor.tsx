@@ -7,7 +7,7 @@ import { OVERLAY_EFFECTS } from './overlayEffects';
 import { 
   Image as ImageIcon, Download, ArrowLeft, Wand2, RefreshCw, Save, ExternalLink,
   Calendar, MapPin, User, AlignLeft, UploadCloud, QrCode, Type, Sparkles, Plus, Trash2, Edit2, Hexagon, Layout,
-  Maximize2, Minimize2, MousePointer2, Move, ZoomIn, ZoomOut, RotateCcw, Check, Users, Layers, GripVertical, ClipboardPaste
+  Maximize2, Minimize2, MousePointer2, Move, ZoomIn, ZoomOut, RotateCcw, Check, Users, Layers, GripVertical, ClipboardPaste, Film
 } from 'lucide-react';
 import AIGenerator from './AIGenerator';
 import ImageCropper from './ImageCropper';
@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { createProject, updateProject, createGuest, uploadBase64, createLogo } from '../services/storageService';
 import { trimTransparentEdges } from '../utils/trimImage';
+import { recordAnimatedNode } from '../utils/recordVideo';
 
 // Need to declare global htmlToImage from the script tag
 declare const htmlToImage: any;
@@ -47,6 +48,9 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
   const [croppingFile, setCroppingFile] = useState<CroppingState | null>(null);
   const [isCanvasMode, setIsCanvasMode] = useState(false);
   const [downloadFormat, setDownloadFormat] = useState<'png' | 'jpg'>('png');
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordProgress, setRecordProgress] = useState(0);
+  const [exportPhase, setExportPhase] = useState<number | undefined>(undefined);
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
@@ -300,6 +304,50 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
       alert('Failed to export image. Please try again.');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleDownloadVideo = async () => {
+    if (!cardRef.current) return;
+    setIsRecording(true);
+    setRecordProgress(0);
+    // Switch card into export mode (hide editing hints) and deterministic phase
+    setIsExporting(true);
+    setExportPhase(0);
+    try {
+      await new Promise((r) => setTimeout(r, 150));
+      const width = cardRef.current.offsetWidth;
+      const height = cardRef.current.offsetHeight;
+
+      const { blob, ext } = await recordAnimatedNode({
+        node: cardRef.current,
+        width,
+        height,
+        fps: 30,
+        cycleSeconds: 2.4,
+        cycles: 2,
+        setPhase: (p) =>
+          new Promise<void>((resolve) => {
+            setExportPhase(p);
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+          }),
+        onProgress: (r) => setRecordProgress(r),
+      });
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = `postcard-${data.templateId}-${Date.now()}.${ext}`;
+      link.href = url;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      console.error('Video export failed', err);
+      alert('Failed to export video. Please try again.');
+    } finally {
+      setExportPhase(undefined);
+      setIsExporting(false);
+      setIsRecording(false);
+      setRecordProgress(0);
     }
   };
 
@@ -996,10 +1044,21 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
               </button>
             </div>
           </div>
-          <button onClick={handleDownload} disabled={isExporting} className="w-full bg-[#2d2d2d] hover:bg-black text-white py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-wait">
-            {isExporting ? <RefreshCw className="animate-spin" size={18} /> : <Download size={18} />}
-            {isExporting ? "Rendering Image..." : "Download Postcard"}
+          <button onClick={handleDownload} disabled={isExporting || isRecording} className="w-full bg-[#2d2d2d] hover:bg-black text-white py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-wait">
+            {isExporting && !isRecording ? <RefreshCw className="animate-spin" size={18} /> : <Download size={18} />}
+            {isExporting && !isRecording ? "Rendering Image..." : "Download Postcard"}
           </button>
+
+          {data.templateId === TemplateId.LIVESTREAM && (
+            <button
+              onClick={handleDownloadVideo}
+              disabled={isExporting || isRecording}
+              className="w-full mt-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-wait"
+            >
+              {isRecording ? <RefreshCw className="animate-spin" size={18} /> : <Film size={18} />}
+              {isRecording ? `Recording... ${Math.round(recordProgress * 100)}%` : "Download Animated Video"}
+            </button>
+          )}
         </div>
       </motion.div>
       </AnimatePresence>
@@ -1044,7 +1103,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                       className={`relative ${getPreviewTransformClasses()}`}
                     >
                       <div className="absolute inset-0 bg-black/40 blur-[100px] translate-y-12 scale-90 -z-10 rounded-[50px]"></div>
-                      <ActiveTemplate ref={cardRef} data={data} scale={getPreviewScale()} onUpdateData={updateData} isExporting={isExporting} />
+                      <ActiveTemplate ref={cardRef} data={data} scale={getPreviewScale()} onUpdateData={updateData} isExporting={isExporting} exportAnimPhase={exportPhase} />
                     </motion.div>
                   </div>
                 </TransformComponent>
@@ -1056,7 +1115,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
             <div className="relative z-10 w-full max-w-[900px] flex-1 flex items-center justify-center">
                <div className={`relative transition-transform duration-500 hover:scale-[1.01] ${getPreviewTransformClasses()}`}>
                   <div className="absolute inset-0 bg-black/20 blur-3xl translate-y-12 scale-90 -z-10 rounded-[50px]"></div>
-                  <ActiveTemplate ref={cardRef} data={data} scale={getPreviewScale()} onUpdateData={updateData} isExporting={isExporting} />
+                  <ActiveTemplate ref={cardRef} data={data} scale={getPreviewScale()} onUpdateData={updateData} isExporting={isExporting} exportAnimPhase={exportPhase} />
                </div>
             </div>
             <div className="shrink-0 mb-4">
