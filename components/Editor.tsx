@@ -290,10 +290,44 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
         backgroundColor: isJpg ? '#ffffff' : 'transparent',
         style: { transform: 'none', transformOrigin: 'top left', boxShadow: 'none' }
       };
-      
-      const dataUrl = isJpg
-        ? await htmlToImage.toJpeg(cardRef.current, options)
-        : await htmlToImage.toPng(cardRef.current, options);
+
+      let dataUrl: string;
+      if (isJpg) {
+        dataUrl = await htmlToImage.toJpeg(cardRef.current, options);
+      } else {
+        // Render to a canvas so we can guarantee a real transparent hole for the
+        // visual frame (CSS mask is unreliable in html-to-image export).
+        const canvas: HTMLCanvasElement = await htmlToImage.toCanvas(cardRef.current, options);
+        const pr = options.pixelRatio;
+        const hole = cardRef.current.querySelector<HTMLElement>('[data-export-hole="true"]');
+        if (hole) {
+          const cardRect = cardRef.current.getBoundingClientRect();
+          const holeRect = hole.getBoundingClientRect();
+          const scaleX = cardRef.current.offsetWidth ? (cardRect.width / cardRef.current.offsetWidth) : 1;
+          const scaleY = cardRef.current.offsetHeight ? (cardRect.height / cardRef.current.offsetHeight) : 1;
+          const x = ((holeRect.left - cardRect.left) / scaleX) * pr;
+          const y = ((holeRect.top - cardRect.top) / scaleY) * pr;
+          const w = (holeRect.width / scaleX) * pr;
+          const h = (holeRect.height / scaleY) * pr;
+          const r = 32 * pr; // matches rounded-[32px]
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            const rr = Math.min(r, w / 2, h / 2);
+            ctx.moveTo(x + rr, y);
+            ctx.arcTo(x + w, y, x + w, y + h, rr);
+            ctx.arcTo(x + w, y + h, x, y + h, rr);
+            ctx.arcTo(x, y + h, x, y, rr);
+            ctx.arcTo(x, y, x + w, y, rr);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+        dataUrl = canvas.toDataURL('image/png');
+      }
       
       const link = document.createElement('a');
       link.download = `postcard-${data.templateId}-${Date.now()}.${downloadFormat}`;

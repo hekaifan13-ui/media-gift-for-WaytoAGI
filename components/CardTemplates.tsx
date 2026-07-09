@@ -834,7 +834,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
       {/* Main Content Area */}
       <div className="flex-1 flex px-10 pb-10 gap-8 min-h-0 relative z-10">
         {/* Left: Main Visual Area (Hollow 16:9 frame) — transparent interior, background cut out behind it */}
-        <div ref={frameRef} className="aspect-[16/9] h-full border-[3px] rounded-[32px] relative shrink-0 z-10 overflow-hidden" style={{ background: 'transparent', borderColor: accent }}>
+        <div ref={frameRef} data-export-hole="true" className="aspect-[16/9] h-full border-[3px] rounded-[32px] relative shrink-0 z-10 overflow-hidden" style={{ background: 'transparent', borderColor: accent }}>
 
           {/* Marquee light — a bright highlight travelling around the frame edge */}
           <div
