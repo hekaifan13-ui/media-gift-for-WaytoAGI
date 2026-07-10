@@ -47,9 +47,10 @@ export interface ProjectRow extends ProjectMeta {
 
 /** Migrate old single-PostcardData format to ProjectAllData */
 function migrateProjectData(raw: any): ProjectAllData {
-  // If the data already has all three template keys, it's the new format
+  // If the data already has all template keys, it's the new format
   if (raw && raw[TemplateId.MODERN] && raw[TemplateId.CODE] && raw[TemplateId.LIVESTREAM]) {
-    return raw as ProjectAllData;
+    // Backfill any newly-added template (e.g. CLASSROOM) missing from older projects
+    return { ...INITIAL_PROJECT_DATA, ...raw } as ProjectAllData;
   }
   // Old format: raw is a single PostcardData with a templateId field
   if (raw && raw.templateId) {

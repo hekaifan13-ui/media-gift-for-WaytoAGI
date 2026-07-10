@@ -2,7 +2,7 @@
 import React, { useRef, useState, DragEvent, ClipboardEvent, useEffect } from 'react';
 import { PostcardData, TemplateId, Author, ProjectAllData } from '../types';
 import { getTemplateComponent } from './CardTemplates';
-import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS } from './bgPresets';
+import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS, CLASSROOM_BG_PRESETS } from './bgPresets';
 import { OVERLAY_EFFECTS } from './overlayEffects';
 import { 
   Image as ImageIcon, Download, ArrowLeft, Wand2, RefreshCw, Save, ExternalLink,
@@ -442,6 +442,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
      if (isCanvasMode) return data.templateId === TemplateId.CODE ? 0.875 : 1;
      if (data.templateId === TemplateId.MODERN) return 0.48;
      if (data.templateId === TemplateId.LIVESTREAM) return 0.48;
+     if (data.templateId === TemplateId.CLASSROOM) return 0.48;
      if (data.templateId === TemplateId.CODE) return 0.525; // 0.6 * 0.875
      return 0.6;
   };
@@ -450,6 +451,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
     if (data.templateId === TemplateId.MODERN) return 'translate-y-[300px] translate-x-[130px]';
     if (data.templateId === TemplateId.CODE) return 'translate-y-[300px] translate-x-[300px]';
     if (data.templateId === TemplateId.LIVESTREAM) return 'translate-y-[300px] translate-x-[300px]';
+    if (data.templateId === TemplateId.CLASSROOM) return 'translate-y-[300px] translate-x-[300px]';
     return 'translate-y-[300px] translate-x-[100px]';
   };
 
@@ -519,7 +521,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
           </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-          {data.templateId !== TemplateId.LIVESTREAM && (
+          {data.templateId !== TemplateId.LIVESTREAM && data.templateId !== TemplateId.CLASSROOM && (
             <section>
               <div className="flex justify-between items-end mb-3">
                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
@@ -817,6 +819,195 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                 )}
               </div>
             </section>
+          )}
+
+          {data.templateId === TemplateId.CLASSROOM && (
+            <section className="space-y-4 border-b border-gray-100 pb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-2 h-2 rounded-full bg-orange-400"></span>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Classroom Title & Sections</label>
+              </div>
+
+              {/* Title */}
+              <div className="relative group">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors"><Type size={16} /></div>
+                <input
+                  type="text"
+                  value={data.classTitle || ''}
+                  onChange={(e) => updateData('classTitle', e.target.value)}
+                  className="w-full bg-white border border-gray-200 hover:border-gray-300 focus:border-orange-500 rounded-lg py-3 pl-10 pr-4 outline-none text-sm font-medium text-gray-700 transition-all placeholder:text-gray-300"
+                  placeholder="Enter classroom title..."
+                />
+              </div>
+
+              {/* Title font size */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Title Font Size</label>
+                  <span className="text-[10px] font-mono text-gray-500">{(data.classTitleFontSize ?? 44)}px</span>
+                </div>
+                <input
+                  type="range"
+                  min="24"
+                  max="72"
+                  step="1"
+                  value={data.classTitleFontSize ?? 44}
+                  onChange={(e) => updateData('classTitleFontSize', parseInt(e.target.value))}
+                  className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-orange-500"
+                />
+              </div>
+
+              {/* Sections editor */}
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nav Sections</label>
+                  <button
+                    onClick={() => updateData('classSections', [...(data.classSections || []), '新章节'])}
+                    className="p-1 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors"
+                    title="Add section"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+                {(data.classSections && data.classSections.length > 0) ? (
+                  <div className="space-y-2">
+                    {data.classSections.map((sec, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={sec}
+                          onChange={(e) => {
+                            const next = [...(data.classSections || [])];
+                            next[idx] = e.target.value;
+                            updateData('classSections', next);
+                          }}
+                          className="flex-1 text-xs bg-white border border-gray-200 focus:border-orange-400 rounded-lg py-2 px-3 outline-none transition-all"
+                          placeholder={`Section ${idx + 1}`}
+                        />
+                        <button
+                          onClick={() => updateData('classSections', (data.classSections || []).filter((_, i) => i !== idx))}
+                          className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all shrink-0"
+                          title="Remove section"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400 italic text-center py-2">No sections yet.</p>
+                )}
+              </div>
+
+              {/* Background picker */}
+              <div className="space-y-2 pt-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Card Background</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {Object.entries(CLASSROOM_BG_PRESETS).map(([key, preset]) => (
+                    <button
+                      key={key}
+                      title={preset.label}
+                      onClick={() => updateData('classBgStyle', key)}
+                      className={`h-10 rounded-xl border-2 transition-all flex items-end justify-start p-1.5 overflow-hidden ${(data.classBgStyle || 'campus') === key ? 'border-orange-500 shadow-md scale-[1.04]' : 'border-transparent hover:border-orange-200'}`}
+                      style={{ background: preset.bg }}
+                    >
+                      <span className={`text-[9px] font-black tracking-wide truncate leading-none ${preset.isDark ? 'text-white/80' : 'text-gray-700/80'}`}>
+                        {preset.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* QR block text */}
+              <div className="space-y-2 pt-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">QR Code & Text</label>
+                <div className="flex gap-3">
+                  <div
+                    tabIndex={0}
+                    onClick={() => qr1InputRef.current?.click()}
+                    onPaste={handlePaste('qrCode1')}
+                    className="w-16 h-16 shrink-0 rounded-lg border-2 border-dashed border-gray-200 hover:border-orange-400 hover:bg-orange-50 cursor-pointer flex flex-col items-center justify-center gap-1 relative overflow-hidden group transition-colors outline-none focus:ring-2 focus:ring-orange-500"
+                  >
+                    {data.qrCode1 ? (
+                      <img src={data.qrCode1} alt="QR" className="w-full h-full object-cover" />
+                    ) : (
+                      <QrCode size={18} className="text-gray-400" />
+                    )}
+                    <input type="file" ref={qr1InputRef} onChange={handleImageUpload('qrCode1')} accept="image/*" className="hidden" />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <input type="text" value={data.qr1Text || ''} onChange={(e) => updateData('qr1Text', e.target.value)} placeholder="扫码进群" className="w-full text-xs bg-white border border-gray-200 focus:border-orange-400 rounded-lg py-2 px-3 outline-none transition-all" maxLength={12} />
+                    <input type="text" value={data.qrSubText || ''} onChange={(e) => updateData('qrSubText', e.target.value)} placeholder="副说明文字" className="w-full text-xs bg-white border border-gray-200 focus:border-orange-400 rounded-lg py-2 px-3 outline-none transition-all" maxLength={30} />
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {data.templateId === TemplateId.CLASSROOM && (
+            <>
+              <section className="space-y-4 border-b border-gray-100 pb-6">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-pink-400"></span>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Guests</label>
+                  </div>
+                  <button onClick={addAuthor} className="p-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors text-gray-600" title="Add Guest"><Plus size={16} /></button>
+                </div>
+                {(!data.authors || data.authors.length === 0) ? (
+                  <p className="text-xs text-gray-400 italic text-center py-2">No guests added.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {data.authors.map((author, idx) => (
+                      <div key={author.id} className="flex gap-3 items-center bg-gray-50 p-2 rounded-lg border border-gray-100 group">
+                        <div className="relative w-10 h-10 shrink-0">
+                          <div
+                            tabIndex={0}
+                            className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden cursor-pointer border border-gray-300 hover:border-gray-400 transition-colors outline-none focus:ring-2 focus:ring-pink-400"
+                            onClick={() => document.getElementById(`class-author-img-${author.id}`)?.click()}
+                            onPaste={handlePaste('authors', idx)}
+                          >
+                            {author.image ? (
+                              <img src={author.image} className="w-full h-full object-cover" alt="Avatar" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400"><User size={16} /></div>
+                            )}
+                          </div>
+                          <input id={`class-author-img-${author.id}`} type="file" className="hidden" accept="image/*" onChange={handleImageUpload('authors', idx)} />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <input type="text" value={author.name} onChange={(e) => updateAuthorField(idx, 'name', e.target.value)} placeholder="@Name" className="w-full text-xs font-bold bg-transparent border-b border-transparent focus:border-gray-300 outline-none placeholder:text-gray-300" />
+                          <input type="text" value={author.title} onChange={(e) => updateAuthorField(idx, 'title', e.target.value)} placeholder="Title (optional)" className="w-full text-[10px] text-gray-500 bg-transparent border-b border-transparent focus:border-gray-300 outline-none placeholder:text-gray-300 tracking-wide" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <button
+                            onClick={() => saveAuthorToLibrary(author)}
+                            disabled={!author.name.trim() || savingGuest[author.id] === 'saving'}
+                            className={`p-1 rounded transition-colors ${savingGuest[author.id] === 'saved' ? 'text-green-500' : 'text-gray-300 hover:text-indigo-500'} disabled:opacity-40`}
+                            title="Save to Guest Library"
+                          >
+                            {savingGuest[author.id] === 'saving' ? <RefreshCw size={14} className="animate-spin" /> : savingGuest[author.id] === 'saved' ? <Check size={14} /> : <Save size={14} />}
+                          </button>
+                          <button onClick={() => removeAuthor(idx)} className="text-gray-300 hover:text-red-400 transition-colors p-1"><Trash2 size={14} /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <section className="pb-6 border-b border-gray-100">
+                <button
+                  onClick={onGoToGuestLibrary}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 rounded-xl text-xs font-bold text-gray-600 hover:text-indigo-700 transition-all"
+                >
+                  <Users size={14} />
+                  Open Guest Library
+                  <ExternalLink size={12} className="opacity-50" />
+                </button>
+              </section>
+            </>
           )}
 
           {(data.templateId === TemplateId.MODERN || data.templateId === TemplateId.LIVESTREAM) && (

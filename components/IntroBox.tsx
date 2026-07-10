@@ -3,7 +3,7 @@ import { AppState, TemplateId } from '../types';
 import { TEMPLATES } from '../constants';
 import { 
   Sparkles, MousePointerClick, Code, Image as ImageIcon, Box,
-  X, LayoutGrid
+  X, LayoutGrid, GraduationCap
 } from 'lucide-react';
 
 interface IntroBoxProps {
@@ -56,6 +56,7 @@ const IntroBox: React.FC<IntroBoxProps> = ({ onOpen, onClose, onSelectTemplate, 
     switch (id) {
       case TemplateId.CODE: return <Code size={16} className="text-blue-500" />;
       case TemplateId.LIVESTREAM: return <Sparkles size={16} className="text-indigo-500" />;
+      case TemplateId.CLASSROOM: return <GraduationCap size={16} className="text-orange-500" />;
       default: return <ImageIcon size={16} className="text-gray-500" />;
     }
   };

@@ -2,7 +2,7 @@
 import React, { forwardRef, useState, useMemo, useEffect, useRef, useLayoutEffect } from 'react';
 import { PostcardData, TemplateId } from '../types';
 import { Feather, FileCode, GitBranch, Search, Settings, Layout, QrCode, User, Image as ImageIcon } from 'lucide-react';
-import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS } from './bgPresets';
+import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS, CLASSROOM_BG_PRESETS } from './bgPresets';
 import { OVERLAY_EFFECTS } from './overlayEffects';
 
 // Grain noise SVG data URI for granular texture overlay
@@ -970,11 +970,309 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
   );
 });
 
+// 4. Classroom / Course Poster (16:9) — hollow transparent frame, section tabs, vertical guest rail
+const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 1, onUpdateData, isExporting = false }, ref) => {
+  const bgKey = data.classBgStyle || 'campus';
+  const bgPreset = CLASSROOM_BG_PRESETS[bgKey] ?? CLASSROOM_BG_PRESETS['campus'];
+  const isDark = bgPreset.isDark;
+  const accent = bgPreset.accent || '#c8794a';
+
+  const [selectedLogo, setSelectedLogo] = useState<number | null>(null);
+
+  // Refs for punching a transparent hole in the background where the visual frame sits
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const [hole, setHole] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+
+  const setRefs = (el: HTMLDivElement | null) => {
+    rootRef.current = el;
+    if (typeof ref === 'function') ref(el);
+    else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = el;
+  };
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const root = rootRef.current;
+      const frame = frameRef.current;
+      if (!root || !frame) return;
+      const rr = root.getBoundingClientRect();
+      const fr = frame.getBoundingClientRect();
+      const sx = rr.width ? 1440 / rr.width : 1;
+      const sy = rr.height ? 810 / rr.height : 1;
+      const next = {
+        x: (fr.left - rr.left) * sx,
+        y: (fr.top - rr.top) * sy,
+        w: fr.width * sx,
+        h: fr.height * sy,
+      };
+      setHole((prev) =>
+        prev &&
+        Math.abs(prev.x - next.x) < 0.5 &&
+        Math.abs(prev.y - next.y) < 0.5 &&
+        Math.abs(prev.w - next.w) < 0.5 &&
+        Math.abs(prev.h - next.h) < 0.5
+          ? prev
+          : next
+      );
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (rootRef.current) ro.observe(rootRef.current);
+    if (frameRef.current) ro.observe(frameRef.current);
+    return () => ro.disconnect();
+  });
+
+  // SVG mask that keeps the whole card visible EXCEPT a rounded-rect hole where the frame sits
+  const holeMask = hole
+    ? `url("data:image/svg+xml,${encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' width='1440' height='810'><defs><mask id='m'><rect width='1440' height='810' fill='white'/><rect x='${hole.x}' y='${hole.y}' width='${hole.w}' height='${hole.h}' rx='32' ry='32' fill='black'/></mask></defs><rect width='1440' height='810' fill='white' mask='url(#m)'/></svg>`
+      )}")`
+    : undefined;
+  const maskStyle: React.CSSProperties = holeMask
+    ? {
+        WebkitMaskImage: holeMask,
+        maskImage: holeMask,
+        WebkitMaskSize: '100% 100%',
+        maskSize: '100% 100%',
+      }
+    : {};
+
+  // --- Logos Drag & Scale Logic ---
+  const handleLogosMouseDown = (e: React.MouseEvent) => {
+    if (isExporting || !onUpdateData) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialLayout = data.logosLayout || { x: 0, y: 0, scale: 1 };
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const dx = (moveEvent.clientX - startX) / scale;
+      const dy = (moveEvent.clientY - startY) / scale;
+      onUpdateData('logosLayout', { ...initialLayout, x: initialLayout.x + dx, y: initialLayout.y + dy });
+    };
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
+  const handleLogosWheel = (e: React.WheelEvent) => {
+    if (isExporting || !onUpdateData) return;
+    e.stopPropagation();
+    const layout = data.logosLayout || { x: 0, y: 0, scale: 1 };
+    const delta = e.deltaY > 0 ? -0.05 : 0.05;
+    const newScale = Math.min(Math.max(layout.scale + delta, 0.2), 3.0);
+    onUpdateData('logosLayout', { ...layout, scale: newScale });
+  };
+
+  // Guest avatar image drop/paste handler factory
+  const handleGuestImage = (guestId: string) => ({
+    onDragOver: (e: React.DragEvent) => e.preventDefault(),
+    onDrop: (e: React.DragEvent) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files?.[0];
+      if (file && file.type.startsWith('image/') && onUpdateData) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          const updated = [...(data.authors || [])];
+          const idx = updated.findIndex(a => a.id === guestId);
+          if (idx !== -1) { updated[idx] = { ...updated[idx], image: result }; onUpdateData('authors', updated); }
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    onPaste: (e: React.ClipboardEvent) => {
+      const items = e.clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          if (file && onUpdateData) {
+            e.preventDefault();
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const result = reader.result as string;
+              const updated = [...(data.authors || [])];
+              const idx = updated.findIndex(a => a.id === guestId);
+              if (idx !== -1) { updated[idx] = { ...updated[idx], image: result }; onUpdateData('authors', updated); }
+            };
+            reader.readAsDataURL(file);
+          }
+          break;
+        }
+      }
+    },
+  });
+
+  const sections = data.classSections && data.classSections.length > 0
+    ? data.classSections
+    : ['开场介绍', '答疑收尾'];
+
+  return (
+    <div
+      ref={setRefs}
+      className={`w-[1440px] h-[810px] shadow-2xl relative overflow-hidden flex flex-col font-sans transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`}
+      style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
+    >
+      {/* Background (masked so the frame interior is cut out / transparent on export) */}
+      <div className="absolute inset-0 z-0" style={{ background: bgPreset.bg, ...maskStyle }}>
+        {bgPreset.glowA && (
+          <div className="absolute -top-40 -left-40 w-[900px] h-[900px] pointer-events-none"
+            style={{ background: `radial-gradient(circle at center, ${bgPreset.glowA} 0%, transparent 55%)` }} />
+        )}
+        {bgPreset.glowB && (
+          <div className="absolute -bottom-40 -right-40 w-[800px] h-[800px] pointer-events-none"
+            style={{ background: `radial-gradient(circle at center, ${bgPreset.glowB} 0%, transparent 55%)` }} />
+        )}
+        {bgPreset.grainOpacity > 0 && <GrainOverlay opacity={bgPreset.grainOpacity} />}
+      </div>
+
+      {/* Effect overlay */}
+      <EffectOverlay effectId={data.overlayEffect} emoji={data.emojiPattern} />
+
+      {/* Top Header: Title + brand logos */}
+      <div className="px-12 pt-8 pb-4 flex items-start justify-between gap-8 z-20 relative">
+        <h1
+          className="font-black leading-tight max-w-[1000px]"
+          style={{
+            fontSize: `${data.classTitleFontSize ?? 44}px`,
+            color: isDark ? '#ffffff' : '#3a2a1a',
+            textShadow: isDark ? '0 2px 12px rgba(0,0,0,0.5)' : '0 2px 8px rgba(255,255,255,0.6)',
+          }}
+        >
+          {data.classTitle || '课堂主标题'}
+        </h1>
+
+        {/* Brand logos */}
+        <div
+          className={`flex items-center shrink-0 ${isExporting ? '' : 'cursor-move group/logos'}`}
+          style={{
+            gap: `${data.logoGap ?? 16}px`,
+            transform: `translate(${data.logosLayout?.x || 0}px, ${data.logosLayout?.y || 0}px) scale(${data.logosLayout?.scale || 1})`,
+            transformOrigin: 'center',
+          }}
+          onMouseDown={handleLogosMouseDown}
+          onWheel={handleLogosWheel}
+        >
+          {data.logos && data.logos.length > 0 ? (
+            data.logos.map((logo, index) => (
+              <div className="contents" key={index}>
+                <LogoImage
+                  logo={logo}
+                  index={index}
+                  data={data}
+                  isExporting={isExporting}
+                  onUpdateData={onUpdateData}
+                  selected={selectedLogo === index}
+                  onSelect={setSelectedLogo}
+                  isDark={isDark}
+                  heightClass="h-14"
+                />
+                {index < (data.logos?.length || 0) - 1 && (
+                  <span className="text-3xl font-light select-none pointer-events-none" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.25)' }}>丨</span>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-400 to-amber-600 shadow-sm pointer-events-none" />
+          )}
+        </div>
+      </div>
+
+      {/* Section tabs bar */}
+      <div className="mx-12 mb-4 z-20 relative">
+        <div
+          className="flex items-center flex-wrap gap-x-1 gap-y-2 rounded-2xl px-6 py-3 shadow-sm"
+          style={{ background: accent }}
+        >
+          {sections.map((sec, i) => (
+            <React.Fragment key={i}>
+              <span className="text-white font-bold text-lg whitespace-nowrap px-1">{sec}</span>
+              {i < sections.length - 1 && (
+                <span className="text-white/50 font-light text-lg select-none px-1">丨</span>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+
+      {/* Main area: transparent frame (left) + vertical guest rail (right) */}
+      <div className="flex-1 flex px-12 pb-12 gap-6 min-h-0 relative z-10">
+        {/* Left: hollow transparent content frame */}
+        <div
+          ref={frameRef}
+          data-export-hole="true"
+          className="flex-1 h-full rounded-[32px] border-[3px] relative overflow-hidden"
+          style={{ background: 'transparent', borderColor: hexToRgba(accent, 0.55) }}
+        >
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <ImageIcon size={72} style={{ color: isDark ? '#ffffff' : accent, opacity: 0.08 }} />
+          </div>
+        </div>
+
+        {/* Right column: guest rail + QR */}
+        <div className="w-[220px] shrink-0 flex flex-col gap-5">
+          {/* Guest rail */}
+          <div className="rounded-3xl px-3 py-5 flex-1 flex flex-col items-center gap-4 overflow-hidden" style={{ background: accent }}>
+            {data.authors && data.authors.length > 0 ? (
+              data.authors.map((guest) => (
+                <div key={guest.id} className="flex flex-col items-center text-center w-full">
+                  <div
+                    className="w-20 h-20 rounded-full overflow-hidden border-[3px] border-white/70 shadow-md shrink-0 cursor-pointer bg-white/20"
+                    {...handleGuestImage(guest.id)}
+                  >
+                    {guest.image ? (
+                      <img src={guest.image} alt={guest.name} crossOrigin="anonymous" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-white/70">
+                        <User size={32} />
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-white font-bold text-sm mt-1.5 truncate w-full px-1">
+                    {guest.name || '@嘉宾'}
+                  </span>
+                  {guest.title && (
+                    <span className="text-white/80 text-[11px] leading-tight truncate w-full px-1">{guest.title}</span>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-white/60">
+                <User size={40} />
+                <span className="text-[11px] font-black mt-3 uppercase tracking-widest">No Guests</span>
+              </div>
+            )}
+          </div>
+
+          {/* QR block */}
+          <div className="rounded-2xl bg-white shadow-md p-3 flex items-center gap-3 shrink-0">
+            <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 flex items-center justify-center bg-gray-50">
+              {data.qrCode1 ? (
+                <img src={data.qrCode1} alt="QR" crossOrigin="anonymous" className="w-full h-full object-contain" />
+              ) : (
+                <QrCode size={48} className="text-gray-300" />
+              )}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-black text-sm" style={{ color: accent }}>{data.qr1Text || '扫码进群'}</span>
+              <span className="text-[11px] text-gray-500 leading-tight mt-0.5 break-words">{data.qrSubText || ''}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 export const getTemplateComponent = (id: TemplateId) => {
   switch (id) {
     case TemplateId.MODERN: return ModernTemplate;
     case TemplateId.CODE: return CodeTemplate;
     case TemplateId.LIVESTREAM: return LivestreamTemplate;
+    case TemplateId.CLASSROOM: return ClassroomTemplate;
     default: return ModernTemplate;
   }
 };

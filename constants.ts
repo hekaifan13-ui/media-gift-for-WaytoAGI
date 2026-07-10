@@ -19,6 +19,12 @@ export const TEMPLATES: TemplateConfig[] = [
     name: "Live Stream",
     description: "16:9 announcement with topic and guests.",
     previewColor: "#8b5cf6"
+  },
+  {
+    id: TemplateId.CLASSROOM,
+    name: "Classroom",
+    description: "16:9 course poster with sections and guests.",
+    previewColor: "#c8794a"
   }
 ];
 
@@ -59,6 +65,16 @@ export const INITIAL_PROJECT_DATA: ProjectAllData = {
     templateId: TemplateId.LIVESTREAM,
     liveTopic: "",
     bgStyle: "nebula-light",
+  } as PostcardData,
+  [TemplateId.CLASSROOM]: {
+    ...SHARED_DEFAULTS,
+    templateId: TemplateId.CLASSROOM,
+    classTitle: "成长引路人的百变课堂：丫丫x搭子PPT实战",
+    classTitleFontSize: 44,
+    classSections: ["开场介绍", "幼教：球星故事PPT", "职教：择业规划", "家教：感恩卡片", "义教：教学课件", "答疑收尾"],
+    qr1Text: "扫码进群",
+    qrSubText: "20份Pro月卡会员等你抽",
+    classBgStyle: "campus",
   } as PostcardData,
 };
 

@@ -12,7 +12,8 @@ export enum AppState {
 export enum TemplateId {
   MODERN = 'MODERN',   // Full bleed, bold text
   CODE = 'CODE',            // VS Code style
-  LIVESTREAM = 'LIVESTREAM' // Live stream announcement
+  LIVESTREAM = 'LIVESTREAM', // Live stream announcement
+  CLASSROOM = 'CLASSROOM' // Classroom / course poster
 }
 
 export interface Author {
@@ -50,11 +51,17 @@ export interface PostcardData {
   liveTopic?: string;
   liveTopicSpacing?: number;
   liveTopicFontSize?: number;
+  // Classroom template fields
+  classTitle?: string;
+  classTitleFontSize?: number;
+  classSections?: string[];
+  qrSubText?: string;
   theme?: 'light' | 'dark';
   bgStyle?: string;        // Livestream full-card background preset key
   footerBgStyle?: string;  // Modern footer background preset key
   overlayEffect?: string;  // Overlay effect id (holographic, stamp, foil, etc.)
   emojiPattern?: string;   // Custom emoji for the emoji overlay pattern
+  classBgStyle?: string;   // Classroom full-card background preset key
 }
 
 export interface TemplateConfig {

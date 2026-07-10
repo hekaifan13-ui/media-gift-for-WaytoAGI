@@ -279,3 +279,51 @@ export const LIVESTREAM_BG_PRESETS: Record<string, BgPreset> = {
     accentSoft: '#fecdd3',
   },
 };
+
+// Card 4 (Classroom) full-card background presets
+export const CLASSROOM_BG_PRESETS: Record<string, BgPreset> = {
+  'campus': {
+    label: '课堂',
+    bg: 'linear-gradient(135deg, #f3e6d6 0%, #efe0cd 30%, #f6ece0 65%, #efe3d3 100%)',
+    shadowColor: '#efe3d3',
+    grainOpacity: 0.06,
+    isDark: false,
+    glowA: 'rgba(200,121,74,0.20)',
+    glowB: 'rgba(230,180,130,0.22)',
+    accent: '#c8794a',
+    accentSoft: '#f0dcc6',
+  },
+  'warm-clay': {
+    label: '暖陶',
+    bg: 'linear-gradient(135deg, #fbf1e6 0%, #f6e2cf 40%, #f3ddc6 70%, #fbf2e7 100%)',
+    shadowColor: '#f5e5d2',
+    grainOpacity: 0.07,
+    isDark: false,
+    glowA: 'rgba(217,119,66,0.22)',
+    glowB: 'rgba(245,197,150,0.24)',
+    accent: '#b96a3c',
+    accentSoft: '#f2dcc4',
+  },
+  'sage': {
+    label: '青竹',
+    bg: 'linear-gradient(135deg, #f2f6ef 0%, #e6f0e2 40%, #eaf3e6 70%, #f4f8f1 100%)',
+    shadowColor: '#e9f1e5',
+    grainOpacity: 0.06,
+    isDark: false,
+    glowA: 'rgba(110,168,110,0.20)',
+    glowB: 'rgba(180,210,150,0.22)',
+    accent: '#5f9e5f',
+    accentSoft: '#d6e8cf',
+  },
+  'night-class': {
+    label: '夜课',
+    bg: 'linear-gradient(135deg, #1c140d 0%, #2b1c10 40%, #35220f 70%, #1a120b 100%)',
+    shadowColor: '#18110a',
+    grainOpacity: 0.12,
+    isDark: true,
+    glowA: 'rgba(217,119,66,0.28)',
+    glowB: 'rgba(234,179,120,0.2)',
+    accent: '#e0a06a',
+    accentSoft: '#f0d3b4',
+  },
+};
