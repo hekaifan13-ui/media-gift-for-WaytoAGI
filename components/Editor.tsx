@@ -299,7 +299,6 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
         // visual frame (CSS mask is unreliable in html-to-image export).
         const canvas: HTMLCanvasElement = await htmlToImage.toCanvas(cardRef.current, options);
         const hole = cardRef.current.querySelector<HTMLElement>('[data-export-hole="true"]');
-        console.log('[export] canvas', canvas.width, canvas.height, 'hole?', !!hole);
         if (hole) {
           // Compute the hole geometry as ratios relative to the card, then scale by the
           // ACTUAL produced bitmap size. This is fully decoupled from pixelRatio and any
@@ -316,10 +315,14 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
           const h = rh * canvas.height;
           // rounded-[32px] on a 1440px-wide card → convert 32px to the bitmap scale
           const r = 32 * (canvas.width / cardRect.width);
-          console.log('[export] punch', `x=${Math.round(x)} y=${Math.round(y)} w=${Math.round(w)} h=${Math.round(h)} cardW=${Math.round(cardRect.width)} cardH=${Math.round(cardRect.height)} holeL=${Math.round(holeRect.left)} cardL=${Math.round(cardRect.left)}`);
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.save();
+            // html-to-image leaves a lingering scale(pixelRatio) transform on the
+            // canvas context. Our coordinates are already in device pixels, so reset
+            // the transform to identity before punching or the hole lands off-canvas
+            // and the exported PNG stays fully opaque.
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.globalCompositeOperation = 'destination-out';
             ctx.beginPath();
             const rr = Math.min(r, w / 2, h / 2);
