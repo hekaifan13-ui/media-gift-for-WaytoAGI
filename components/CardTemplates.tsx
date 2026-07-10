@@ -1168,7 +1168,7 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sca
                   selected={selectedLogo === index}
                   onSelect={setSelectedLogo}
                   isDark={isDark}
-                  heightClass="h-14"
+                  heightClass="h-[39px]"
                 />
                 {index < (data.logos?.length || 0) - 1 && (
                   <span className="text-3xl font-light select-none pointer-events-none" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.25)' }}>丨</span>

@@ -69,11 +69,11 @@ export const INITIAL_PROJECT_DATA: ProjectAllData = {
   [TemplateId.CLASSROOM]: {
     ...SHARED_DEFAULTS,
     templateId: TemplateId.CLASSROOM,
-    classTitle: "成长引路人的百变课堂：丫丫x搭子PPT实战",
+    classTitle: "在此输入课堂主标题",
     classTitleFontSize: 44,
-    classSections: ["开场介绍", "幼教：球星故事PPT", "职教：择业规划", "家教：感恩卡片", "义教：教学课件", "答疑收尾"],
+    classSections: ["章节一", "章节二", "章节三", "章节四"],
     qr1Text: "扫码进群",
-    qrSubText: "20份Pro月卡会员等你抽",
+    qrSubText: "在此输入说明文字",
     classBgStyle: "campus",
   } as PostcardData,
 };
