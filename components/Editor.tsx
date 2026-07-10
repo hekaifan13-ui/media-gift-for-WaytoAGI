@@ -295,24 +295,51 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
       if (isJpg) {
         dataUrl = await htmlToImage.toJpeg(cardRef.current, options);
       } else {
-        // PNG path: serialize the DOM to an SVG first (this preserves the CSS mask,
-        // so the visual frame area stays truly transparent), then rasterize that SVG
-        // onto a canvas at the target resolution and export as PNG.
-        const svgUrl: string = await htmlToImage.toSvg(cardRef.current, options);
+        // PNG path — needs a REAL transparent hole where the visual frame sits.
+        // html-to-image does not reliably reproduce the CSS mask, so:
+        //   1. Rasterize the card normally (background fills the frame).
+        //   2. Copy it onto a FRESH canvas — a brand-new 2D context always has an
+        //      identity transform, avoiding html-to-image's leftover scale(ratio)
+        //      that previously pushed the punch off-canvas.
+        //   3. Punch a rounded-rect hole in the frame INTERIOR (keeping the border).
+        const rendered: HTMLCanvasElement = await htmlToImage.toCanvas(cardRef.current, options);
         const pr = options.pixelRatio;
         const canvas = document.createElement('canvas');
-        canvas.width = Math.round(width * pr);
-        canvas.height = Math.round(height * pr);
-        const img = new Image();
-        img.decoding = 'async';
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve();
-          img.onerror = () => reject(new Error('Failed to load SVG for PNG export'));
-          img.src = svgUrl;
-        });
+        canvas.width = rendered.width;
+        canvas.height = rendered.height;
         const ctx = canvas.getContext('2d');
         if (!ctx) throw new Error('Canvas 2D context unavailable');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(rendered, 0, 0);
+
+        const hole = cardRef.current.querySelector<HTMLElement>('[data-export-hole="true"]');
+        if (hole) {
+          const cardRect = cardRef.current.getBoundingClientRect();
+          const holeRect = hole.getBoundingClientRect();
+          // Ratios cancel out any preview transform/scale, so these map exactly
+          // onto the produced bitmap regardless of zoom level.
+          let x = ((holeRect.left - cardRect.left) / cardRect.width) * canvas.width;
+          let y = ((holeRect.top - cardRect.top) / cardRect.height) * canvas.height;
+          let w = (holeRect.width / cardRect.width) * canvas.width;
+          let h = (holeRect.height / cardRect.height) * canvas.height;
+          // Frame has a 3px border + rounded-[32px] corners (design px → bitmap px).
+          const bw = 3 * pr;
+          const r = Math.max(0, 32 * pr - bw);
+          // Inset by the border width so the coloured frame stroke is preserved.
+          x += bw; y += bw; w -= bw * 2; h -= bw * 2;
+
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.fillStyle = '#000';
+          ctx.beginPath();
+          const rr = Math.min(r, w / 2, h / 2);
+          ctx.moveTo(x + rr, y);
+          ctx.arcTo(x + w, y, x + w, y + h, rr);
+          ctx.arcTo(x + w, y + h, x, y + h, rr);
+          ctx.arcTo(x, y + h, x, y, rr);
+          ctx.arcTo(x, y, x + w, y, rr);
+          ctx.closePath();
+          ctx.fill();
+          ctx.globalCompositeOperation = 'source-over';
+        }
         dataUrl = canvas.toDataURL('image/png');
       }
       
