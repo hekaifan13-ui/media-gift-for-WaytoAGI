@@ -815,7 +815,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
                   selected={selectedLogo === index}
                   onSelect={setSelectedLogo}
                   isDark={isDark}
-                  heightClass="h-20"
+                  heightClass="h-12"
                 />
                 {index < (data.logos?.length || 0) - 1 && (
                   <span className="text-3xl font-light select-none pointer-events-none" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.3)' }}>丨</span>
