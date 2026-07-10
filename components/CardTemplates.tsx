@@ -274,7 +274,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
               )}
               <div className="flex items-center" style={{ gap: `${data.logoGap ?? 16}px` }}>
                 {data.logos.map((logo, index) => (
-                  <React.Fragment key={index}>
+                  <div className="contents" key={index}>
                     <LogoImage
                       logo={logo}
                       index={index}
@@ -288,7 +288,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
                     {index < (data.logos?.length || 0) - 1 && (
                       <span className="text-2xl font-light opacity-80 select-none" style={{ color: data.logoSeparatorColor || '#ffffff' }}>丨</span>
                     )}
-                  </React.Fragment>
+                  </div>
                 ))}
               </div>
             </div>
@@ -805,7 +805,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
           )}
           {data.logos && data.logos.length > 0 ? (
             data.logos.map((logo, index) => (
-              <React.Fragment key={index}>
+              <div className="contents" key={index}>
                 <LogoImage
                   logo={logo}
                   index={index}
@@ -815,12 +815,12 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
                   selected={selectedLogo === index}
                   onSelect={setSelectedLogo}
                   isDark={isDark}
-                  heightClass="h-10"
+                  heightClass="h-40"
                 />
                 {index < (data.logos?.length || 0) - 1 && (
                   <span className="text-3xl font-light select-none pointer-events-none" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.3)' }}>丨</span>
                 )}
-              </React.Fragment>
+              </div>
             ))
           ) : (
             <div className="flex items-center gap-4">
