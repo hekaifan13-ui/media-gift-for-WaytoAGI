@@ -21,9 +21,9 @@ export interface RecordOptions {
 }
 
 function pickMimeType(): { mimeType: string; ext: string } {
+  // Only alpha-capable containers — MP4/H.264 cannot store transparency, so we
+  // stick to WebM (VP9/VP8 both support an alpha channel in Chromium).
   const candidates = [
-    { mimeType: 'video/mp4;codecs=h264', ext: 'mp4' },
-    { mimeType: 'video/mp4', ext: 'mp4' },
     { mimeType: 'video/webm;codecs=vp9', ext: 'webm' },
     { mimeType: 'video/webm;codecs=vp8', ext: 'webm' },
     { mimeType: 'video/webm', ext: 'webm' },
@@ -34,6 +34,46 @@ function pickMimeType(): { mimeType: string; ext: string } {
     }
   }
   return { mimeType: '', ext: 'webm' };
+}
+
+// Punch a real transparent rounded-rect hole where the visual frame sits — mirrors
+// the still-image (PNG) export logic so video frames get the same transparent window.
+function punchFrame(src: HTMLCanvasElement, node: HTMLElement, pixelRatio: number): HTMLCanvasElement {
+  const hole = node.querySelector<HTMLElement>('[data-export-hole="true"]');
+  const out = document.createElement('canvas');
+  out.width = src.width;
+  out.height = src.height;
+  const ctx = out.getContext('2d');
+  if (!ctx) return src;
+  ctx.clearRect(0, 0, out.width, out.height);
+  ctx.drawImage(src, 0, 0);
+  if (!hole) return out;
+
+  const cardRect = node.getBoundingClientRect();
+  const holeRect = hole.getBoundingClientRect();
+  // Ratios cancel any preview transform/scale, mapping exactly onto the bitmap.
+  let x = ((holeRect.left - cardRect.left) / cardRect.width) * out.width;
+  let y = ((holeRect.top - cardRect.top) / cardRect.height) * out.height;
+  let w = (holeRect.width / cardRect.width) * out.width;
+  let h = (holeRect.height / cardRect.height) * out.height;
+  // Frame: 3px border + rounded-[32px] corners (design px → bitmap px).
+  const bw = 3 * pixelRatio;
+  const r = Math.max(0, 32 * pixelRatio - bw);
+  x += bw; y += bw; w -= bw * 2; h -= bw * 2;
+
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  const rr = Math.min(r, w / 2, h / 2);
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  return out;
 }
 
 export async function recordAnimatedNode(opts: RecordOptions): Promise<{ blob: Blob; ext: string }> {
@@ -47,6 +87,8 @@ export async function recordAnimatedNode(opts: RecordOptions): Promise<{ blob: B
   const outH = Math.round(height * pixelRatio);
 
   // 1. Pre-render one full cycle of frames to bitmaps (slow, but off real-time clock).
+  //    Rendered with a transparent background, then the visual frame is punched out
+  //    so each frame carries a real transparent window.
   const frames: HTMLCanvasElement[] = [];
   for (let i = 0; i < framesPerCycle; i++) {
     const phase = i / framesPerCycle;
@@ -58,10 +100,10 @@ export async function recordAnimatedNode(opts: RecordOptions): Promise<{ blob: B
       height,
       pixelRatio,
       cacheBust: false,
-      backgroundColor: '#ffffff',
+      backgroundColor: 'transparent',
       style: { transform: 'none', transformOrigin: 'top left', boxShadow: 'none' },
     });
-    frames.push(canvas);
+    frames.push(punchFrame(canvas, node, pixelRatio));
     onProgress?.((i + 1) / framesPerCycle * 0.7); // pre-render = first 70%
   }
 
@@ -69,7 +111,7 @@ export async function recordAnimatedNode(opts: RecordOptions): Promise<{ blob: B
   const out = document.createElement('canvas');
   out.width = outW;
   out.height = outH;
-  const ctx = out.getContext('2d')!;
+  const ctx = out.getContext('2d', { alpha: true })!;
   const stream = out.captureStream(fps);
   const { mimeType, ext } = pickMimeType();
   const bitsPerSecond = Math.min(Math.round(outW * outH * fps * 0.15), 60_000_000);
@@ -97,11 +139,13 @@ export async function recordAnimatedNode(opts: RecordOptions): Promise<{ blob: B
       const frameIdx = Math.floor(elapsed / frameInterval);
       if (frameIdx >= totalFrames) {
         // draw final frame then finish
+        ctx.clearRect(0, 0, outW, outH);
         ctx.drawImage(frames[(totalFrames - 1) % framesPerCycle], 0, 0, outW, outH);
         resolve();
         return;
       }
       if (frameIdx !== lastDrawn) {
+        ctx.clearRect(0, 0, outW, outH);
         ctx.drawImage(frames[frameIdx % framesPerCycle], 0, 0, outW, outH);
         lastDrawn = frameIdx;
         onProgress?.(0.7 + (frameIdx / totalFrames) * 0.3);
