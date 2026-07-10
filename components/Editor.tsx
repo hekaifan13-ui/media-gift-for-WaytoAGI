@@ -295,47 +295,24 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
       if (isJpg) {
         dataUrl = await htmlToImage.toJpeg(cardRef.current, options);
       } else {
-        // Render to a canvas so we can guarantee a real transparent hole for the
-        // visual frame (CSS mask is unreliable in html-to-image export).
-        const canvas: HTMLCanvasElement = await htmlToImage.toCanvas(cardRef.current, options);
-        const hole = cardRef.current.querySelector<HTMLElement>('[data-export-hole="true"]');
-        if (hole) {
-          // Compute the hole geometry as ratios relative to the card, then scale by the
-          // ACTUAL produced bitmap size. This is fully decoupled from pixelRatio and any
-          // CSS transform/scale, so the punched hole always lands exactly on the frame.
-          const cardRect = cardRef.current.getBoundingClientRect();
-          const holeRect = hole.getBoundingClientRect();
-          const rx = (holeRect.left - cardRect.left) / cardRect.width;
-          const ry = (holeRect.top - cardRect.top) / cardRect.height;
-          const rw = holeRect.width / cardRect.width;
-          const rh = holeRect.height / cardRect.height;
-          const x = rx * canvas.width;
-          const y = ry * canvas.height;
-          const w = rw * canvas.width;
-          const h = rh * canvas.height;
-          // rounded-[32px] on a 1440px-wide card → convert 32px to the bitmap scale
-          const r = 32 * (canvas.width / cardRect.width);
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.save();
-            // html-to-image leaves a lingering scale(pixelRatio) transform on the
-            // canvas context. Our coordinates are already in device pixels, so reset
-            // the transform to identity before punching or the hole lands off-canvas
-            // and the exported PNG stays fully opaque.
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.beginPath();
-            const rr = Math.min(r, w / 2, h / 2);
-            ctx.moveTo(x + rr, y);
-            ctx.arcTo(x + w, y, x + w, y + h, rr);
-            ctx.arcTo(x + w, y + h, x, y + h, rr);
-            ctx.arcTo(x, y + h, x, y, rr);
-            ctx.arcTo(x, y, x + w, y, rr);
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
-          }
-        }
+        // PNG path: serialize the DOM to an SVG first (this preserves the CSS mask,
+        // so the visual frame area stays truly transparent), then rasterize that SVG
+        // onto a canvas at the target resolution and export as PNG.
+        const svgUrl: string = await htmlToImage.toSvg(cardRef.current, options);
+        const pr = options.pixelRatio;
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(width * pr);
+        canvas.height = Math.round(height * pr);
+        const img = new Image();
+        img.decoding = 'async';
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error('Failed to load SVG for PNG export'));
+          img.src = svgUrl;
+        });
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Canvas 2D context unavailable');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         dataUrl = canvas.toDataURL('image/png');
       }
       
