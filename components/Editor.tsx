@@ -438,6 +438,20 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
     }
   };
 
+  const handleBack = async () => {
+    // Ensure the project card has a fresh preview thumbnail before leaving.
+    try {
+      if (projectId) {
+        const thumbnail = await generateThumbnail();
+        if (thumbnail) await updateProject(projectId, { title: titleInput, data: projectData, thumbnail });
+      }
+    } catch (err) {
+      console.error('Auto thumbnail on back failed:', err);
+    } finally {
+      onBack();
+    }
+  };
+
   const getPreviewScale = () => {
      if (isCanvasMode) return data.templateId === TemplateId.CODE ? 0.875 : 1;
      if (data.templateId === TemplateId.MODERN) return 0.48;
@@ -479,7 +493,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
         >
           {/* Header */}
           <div className="h-16 flex items-center px-6 border-b border-gray-100 bg-white/80 backdrop-blur-sm shrink-0">
-             <button onClick={onBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors mr-3 group" title="Back to Projects">
+             <button onClick={handleBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors mr-3 group" title="Back to Projects">
                <ArrowLeft size={20} className="text-gray-400 group-hover:text-gray-800 transition-colors" />
              </button>
              <div className="flex-1 min-w-0">
