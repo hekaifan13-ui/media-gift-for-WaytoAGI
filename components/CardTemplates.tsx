@@ -1258,11 +1258,11 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sca
 
           {/* QR block */}
           <div className="rounded-2xl bg-white shadow-md p-3 flex items-center gap-3 shrink-0">
-            <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 flex items-center justify-center bg-gray-50">
+            <div className="w-24 h-24 rounded-lg overflow-hidden shrink-0 flex items-center justify-center bg-gray-50">
               {data.qrCode1 ? (
                 <img src={data.qrCode1} alt="QR" crossOrigin="anonymous" className="w-full h-full object-contain" />
               ) : (
-                <QrCode size={48} className="text-gray-300" />
+                <QrCode size={58} className="text-gray-300" />
               )}
             </div>
             <div className="flex flex-col min-w-0">
