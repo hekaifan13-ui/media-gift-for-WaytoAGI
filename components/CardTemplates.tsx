@@ -1215,30 +1215,39 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sca
         {/* Right column: guest rail + QR */}
         <div className="w-[220px] shrink-0 flex flex-col gap-5">
           {/* Guest rail */}
-          <div className="rounded-3xl px-3 py-5 flex-1 flex flex-col items-center gap-4 overflow-hidden" style={{ background: accent }}>
+          <div className="rounded-3xl px-3 py-5 flex-1 overflow-hidden" style={{ background: accent }}>
             {data.authors && data.authors.length > 0 ? (
-              data.authors.map((guest) => (
-                <div key={guest.id} className="flex flex-col items-center text-center w-full">
-                  <div
-                    className="w-20 h-20 rounded-full overflow-hidden border-[3px] border-white/70 shadow-md shrink-0 cursor-pointer bg-white/20"
-                    {...handleGuestImage(guest.id)}
-                  >
-                    {guest.image ? (
-                      <img src={guest.image} alt={guest.name} crossOrigin="anonymous" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-white/70">
-                        <User size={32} />
+              (() => {
+                const twoCol = data.authors.length >= 4;
+                const avatarSize = twoCol ? 'w-16 h-16' : 'w-20 h-20';
+                const iconSize = twoCol ? 26 : 32;
+                return (
+                  <div className={twoCol ? 'grid grid-cols-2 gap-x-2 gap-y-3 content-start' : 'flex flex-col items-center gap-4'}>
+                    {data.authors.map((guest) => (
+                      <div key={guest.id} className="flex flex-col items-center text-center w-full min-w-0">
+                        <div
+                          className={`${avatarSize} rounded-full overflow-hidden border-[3px] border-white/70 shadow-md shrink-0 cursor-pointer bg-white/20`}
+                          {...handleGuestImage(guest.id)}
+                        >
+                          {guest.image ? (
+                            <img src={guest.image} alt={guest.name} crossOrigin="anonymous" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white/70">
+                              <User size={iconSize} />
+                            </div>
+                          )}
+                        </div>
+                        <span className={`text-white font-bold ${twoCol ? 'text-xs' : 'text-sm'} mt-1.5 truncate w-full px-1`}>
+                          {guest.name || '@嘉宾'}
+                        </span>
+                        {guest.title && (
+                          <span className="text-white/80 text-[10px] leading-tight truncate w-full px-1">{guest.title}</span>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
-                  <span className="text-white font-bold text-sm mt-1.5 truncate w-full px-1">
-                    {guest.name || '@嘉宾'}
-                  </span>
-                  {guest.title && (
-                    <span className="text-white/80 text-[11px] leading-tight truncate w-full px-1">{guest.title}</span>
-                  )}
-                </div>
-              ))
+                );
+              })()
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-white/60">
                 <User size={40} />
