@@ -740,6 +740,23 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                 />
               </div>
 
+              {/* Font Size slider */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Font Size</label>
+                  <span className="text-[10px] font-mono text-gray-500">{(data.liveTopicFontSize ?? 36)}px</span>
+                </div>
+                <input
+                  type="range"
+                  min="20"
+                  max="72"
+                  step="1"
+                  value={data.liveTopicFontSize ?? 36}
+                  onChange={(e) => updateData('liveTopicFontSize', parseInt(e.target.value))}
+                  className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-indigo-500"
+                />
+              </div>
+
               {/* Card 3 Background Picker */}
               <div className="space-y-2 pt-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Card Background</label>

@@ -778,8 +778,8 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
             直播主题
           </span>
           <h1 
-            className={`text-4xl font-black truncate max-w-[1000px] transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`}
-            style={{ letterSpacing: `${data.liveTopicSpacing ?? 0}em` }}
+            className={`font-black truncate max-w-[1000px] transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`}
+            style={{ letterSpacing: `${data.liveTopicSpacing ?? 0}em`, fontSize: `${data.liveTopicFontSize ?? 36}px` }}
           >
             {data.liveTopic || "直播主题内容"}
           </h1>

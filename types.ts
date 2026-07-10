@@ -49,6 +49,7 @@ export interface PostcardData {
   logoStyle?: 'white-text' | 'black-text';
   liveTopic?: string;
   liveTopicSpacing?: number;
+  liveTopicFontSize?: number;
   theme?: 'light' | 'dark';
   bgStyle?: string;        // Livestream full-card background preset key
   footerBgStyle?: string;  // Modern footer background preset key
