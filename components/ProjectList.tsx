@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Layout, Search, Clock } from 'lucide-react';
+import { Plus, Trash2, Layout, Search, Clock, AlertTriangle } from 'lucide-react';
 import { ProjectMeta, getProjects, deleteProject } from '../services/storageService';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -16,6 +16,8 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
   const [activeTab, setActiveTab] = useState('All');
   const [searchValue, setSearchValue] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<ProjectMeta | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadProjects();
@@ -33,14 +35,23 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
     }
   };
 
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
+  const handleDelete = (e: React.MouseEvent, project: ProjectMeta) => {
     e.stopPropagation();
-    if (!confirm('Delete this project?')) return;
+    setPendingDelete(project);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    const id = pendingDelete.id;
+    setDeleting(true);
     try {
       await deleteProject(id);
       setProjects(prev => prev.filter(p => p.id !== id));
+      setPendingDelete(null);
     } catch (err) {
       console.error('Failed to delete:', err);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -211,7 +222,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
                             3 Templates
                           </span>
                           <button
-                            onClick={(e) => handleDelete(e, project.id)}
+                            onClick={(e) => handleDelete(e, project)}
                             className="relative text-[13px] font-bold text-gray-400 overflow-hidden group/btn hover:text-red-500 transition-colors"
                           >
                             <Trash2 size={14} />
@@ -226,6 +237,54 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
           </main>
         </div>
       </div>
+
+      {/* Delete confirmation modal */}
+      <AnimatePresence>
+        {pendingDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={() => !deleting && setPendingDelete(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0, y: 12 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.92, opacity: 0, y: 12 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+              className="w-full max-w-sm bg-white rounded-[24px] p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                  <AlertTriangle size={22} className="text-red-500" />
+                </div>
+                <h3 className="text-[16px] font-semibold text-[#1A1A1A] mb-1">Delete this project?</h3>
+                <p className="text-[13px] text-[#999999] mb-6 truncate max-w-full px-2">
+                  “{pendingDelete.title}” will be permanently removed.
+                </p>
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => setPendingDelete(null)}
+                    disabled={deleting}
+                    className="flex-1 py-2.5 rounded-full text-[14px] font-medium text-[#666666] bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    disabled={deleting}
+                    className="flex-1 py-2.5 rounded-full text-[14px] font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-60"
+                  >
+                    {deleting ? 'Deleting…' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
